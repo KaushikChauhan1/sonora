@@ -1,66 +1,49 @@
+/* SONORA V3.0 Master Design Tokens & Variables
+ * Dark Obsidian, Deep Wine, Crimson Depth, Warm Cream, and Champagne Gold
+ */
+
+@import '../../design/tokens.css';
+@import '../../design/typography.css';
+@import '../../design/motion.css';
+
 :root {
-  /* Surface & Canvas Tokens */
-  --background: #F6F4EF;
-  --surface: #FFFFFF;
-  --surface-secondary: #EFEEE9;
-  --surface-tertiary: #E8E5DE;
-  --surface-hover: #F2F0EA;
+  /* Backward-compatibility aliases mapped to V3.0 tokens */
+  --background: var(--bg-primary);
+  --surface: var(--bg-secondary);
+  --surface-secondary: var(--bg-tertiary);
+  --surface-tertiary: var(--wine);
+  --surface-hover: rgba(84, 20, 33, 0.45);
 
-  /* Typography Colors */
-  --text-primary: #242321;
-  --text-secondary: #85827C;
-  --text-muted: #A8A59E;
-  --text-inverse: #FFFFFF;
+  --text-primary: var(--cream);
+  --text-secondary: var(--muted-cream);
+  --text-muted: var(--text-muted);
+  --text-inverse: var(--bg-primary);
 
-  /* Editorial Accent Colors */
-  --accent: #9A86D8;
-  --accent-hover: #8670C9;
-  --accent-active: #765FB9;
-  --accent-subtle: rgba(154, 134, 216, 0.12);
-  --accent-border: rgba(154, 134, 216, 0.28);
+  --accent: var(--champagne);
+  --accent-hover: #E8DCC5;
+  --accent-active: #C4A576;
+  --accent-subtle: rgba(217, 188, 145, 0.12);
+  --accent-border: rgba(217, 188, 145, 0.28);
 
-  /* Functional Accents */
+  --primary-brand: var(--crimson);
+  --primary-brand-hover: var(--vermilion);
+
   --liked-red: #E05353;
-  --liked-red-subtle: rgba(224, 83, 83, 0.12);
+  --liked-red-subtle: rgba(224, 83, 83, 0.16);
 
-  /* Hairlines & Borders */
-  --border: #E8E5DE;
-  --border-subtle: rgba(232, 229, 222, 0.6);
-  --border-focus: rgba(154, 134, 216, 0.45);
+  --border: var(--glass-border);
+  --border-subtle: rgba(232, 220, 197, 0.06);
+  --border-focus: var(--champagne);
 
-  /* Glass Materials */
-  --glass: rgba(255, 255, 255, 0.68);
-  --glass-elevated: rgba(255, 255, 255, 0.85);
-  --glass-docked: rgba(255, 255, 255, 0.88);
-  --glass-card: rgba(255, 255, 255, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-card: var(--glass);
   --glass-blur-sm: blur(12px);
-  --glass-blur-md: blur(24px) saturate(160%);
-  --glass-blur-lg: blur(40px) saturate(180%);
+  --glass-blur-md: var(--glass-blur);
+  --glass-blur-lg: blur(36px) saturate(140%);
 
-  /* Shadows */
-  --shadow-subtle: 0 2px 10px rgba(36, 35, 33, 0.03);
-  --shadow-card: 0 4px 20px -2px rgba(36, 35, 33, 0.05);
-  --shadow-elevated: 0 12px 36px -4px rgba(36, 35, 33, 0.08);
-  --shadow-ambient: 0 20px 60px -8px rgba(154, 134, 216, 0.16);
+  --shadow-card: var(--shadow-glass);
+  --shadow-ambient: 0 20px 60px -8px var(--wine-glow);
 
-  /* Dynamic Artwork Extracted Colors (default fallback) */
-  --artwork-dominant-rgb: 154, 134, 216;
-  --artwork-secondary-rgb: 232, 229, 222;
-
-  /* Typography Font Stacks */
-  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-editorial: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-
-  /* Layout Spacing */
-  --sidebar-width: 240px;
-  --docked-player-height: 84px;
-  --mobile-nav-height: 64px;
-
-  /* Transitions */
-  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-  --duration-fast: 150ms;
-  --duration-normal: 250ms;
-  --duration-slow: 400ms;
+  /* Fallback dynamic artwork extraction colors */
+  --artwork-dominant-rgb: 84, 20, 33;
+  --artwork-secondary-rgb: 217, 188, 145;
 }

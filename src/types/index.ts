@@ -77,7 +77,7 @@ export interface PlaybackState {
   isShuffled: boolean;
 }
 
-export type ViewMode = 'discover' | 'search' | 'library' | 'lyrics-studio' | 'settings';
+export type ViewMode = 'discover' | 'player' | 'lyrics-studio' | 'search' | 'library' | 'settings';
 
 export interface ProviderCapabilities {
   search: boolean;

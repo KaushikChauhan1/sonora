@@ -70,10 +70,10 @@ export const SearchView: React.FC<SearchViewProps> = ({ initialQuery = '' }) => 
 
       {/* Recent Searches */}
       {searchHistory.length > 0 && !cleanQ && (
-        <div style={{ marginBottom: 28, background: 'var(--surface)', padding: 16, borderRadius: 16, border: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>RECENT SEARCHES</span>
-            <button onClick={clearSearchHistory} style={{ fontSize: 12, color: 'var(--accent)' }}>
+        <div className="glass-panel" style={{ marginBottom: 28, padding: 18, borderRadius: 'var(--radius-medium)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--champagne)' }}>RECENT SEARCHES</span>
+            <button onClick={clearSearchHistory} style={{ fontSize: 12, color: 'var(--muted-cream)' }}>
               Clear
             </button>
           </div>

@@ -1,5 +1,15 @@
 import React from 'react';
-import { Compass, Search, Library, Mic2, Plus, Music2 } from 'lucide-react';
+import {
+  Compass,
+  Search,
+  Library,
+  Mic2,
+  Disc3,
+  Settings,
+  Plus,
+  Music2,
+  Radio,
+} from 'lucide-react';
 import { ViewMode } from '../../types';
 import { useLibraryStore } from '../../stores/useLibraryStore';
 import { usePlayerStore } from '../../stores/usePlayerStore';
@@ -23,23 +33,49 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Brand Header */}
       <div className="brand-header">
         <div className="brand-logo-mark">
-          <Music2 size={18} color="var(--accent)" />
+          <Music2 size={18} color="var(--champagne)" />
         </div>
         <div className="brand-text">SONORA</div>
-        <span className="brand-badge">BETA</span>
+        <span className="brand-badge">V3.0</span>
       </div>
 
-      {/* Main Navigation */}
+      {/* Main Experience Modes */}
       <div className="sidebar-nav-group">
-        <span className="sidebar-section-label">Discover</span>
+        <span className="sidebar-section-label">Experience</span>
         <button
           className={`nav-link ${currentView === 'discover' ? 'active' : ''}`}
           onClick={() => onSelectView('discover')}
+          title="Mode A: Discover & Catalogue"
         >
           <Compass size={18} className="nav-icon" />
-          <span className="nav-label">Explore</span>
+          <span className="nav-label">Discover</span>
         </button>
 
+        <button
+          className={`nav-link ${currentView === 'player' ? 'active' : ''}`}
+          onClick={() => onSelectView('player')}
+          title="Mode B: Cinematic Immersive Player"
+        >
+          <Disc3 size={18} className="nav-icon" />
+          <span className="nav-label">Immersive Player</span>
+        </button>
+
+        <button
+          className={`nav-link ${currentView === 'lyrics-studio' ? 'active' : ''}`}
+          onClick={() => {
+            onSelectView('lyrics-studio');
+            setLyricsStudioOpen(true);
+          }}
+          title="Mode C: Synchronized Lyrics Focus"
+        >
+          <Mic2 size={18} className="nav-icon" />
+          <span className="nav-label">Lyrics Focus</span>
+        </button>
+      </div>
+
+      {/* Browse & Search */}
+      <div className="sidebar-nav-group">
+        <span className="sidebar-section-label">Browse</span>
         <button
           className={`nav-link ${currentView === 'search' ? 'active' : ''}`}
           onClick={() => onSelectView('search')}
@@ -49,26 +85,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          className={`nav-link ${currentView === 'lyrics-studio' ? 'active' : ''}`}
-          onClick={() => {
-            onSelectView('lyrics-studio');
-            setLyricsStudioOpen(true);
-          }}
-        >
-          <Mic2 size={18} className="nav-icon" />
-          <span className="nav-label">Lyrics Studio</span>
-        </button>
-      </div>
-
-      {/* Library Section */}
-      <div className="sidebar-nav-group">
-        <span className="sidebar-section-label">My Collection</span>
-        <button
           className={`nav-link ${currentView === 'library' ? 'active' : ''}`}
           onClick={() => onSelectView('library')}
         >
           <Library size={18} className="nav-icon" />
           <span className="nav-label">Library</span>
+        </button>
+
+        <button
+          className={`nav-link ${currentView === 'settings' ? 'active' : ''}`}
+          onClick={() => onSelectView('settings')}
+        >
+          <Settings size={18} className="nav-icon" />
+          <span className="nav-label">Settings</span>
         </button>
       </div>
 
@@ -77,7 +106,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <span className="sidebar-section-label" style={{ padding: 0 }}>Playlists</span>
         <button
           onClick={onCreatePlaylist}
-          style={{ color: 'var(--accent)', padding: 4, borderRadius: 6 }}
+          style={{ color: 'var(--champagne)', padding: 4, borderRadius: 6 }}
           title="Create Playlist"
         >
           <Plus size={16} />
@@ -99,6 +128,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
           </button>
         ))}
+      </div>
+
+      {/* Bound Account Footer Card */}
+      <div className="sidebar-account-footer glass-panel">
+        <div className="account-footer-left">
+          <Radio size={14} className="accent-icon" />
+          <div className="account-footer-meta">
+            <span className="account-footer-name">@kaushik.thinks</span>
+            <span className="account-footer-sub">257 tracks synced</span>
+          </div>
+        </div>
       </div>
     </aside>
   );

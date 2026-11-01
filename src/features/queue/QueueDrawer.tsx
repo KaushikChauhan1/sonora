@@ -30,20 +30,23 @@ export const QueueDrawer: React.FC = () => {
         position: 'fixed',
         inset: 0,
         zIndex: 90,
-        background: 'rgba(36, 35, 33, 0.25)',
-        backdropFilter: 'blur(4px)',
+        background: 'rgba(0, 0, 0, 0.65)',
+        backdropFilter: 'blur(10px)',
         display: 'flex',
         justifyContent: 'flex-end',
       }}
       onClick={() => setQueueDrawerOpen(false)}
     >
       <div
+        className="glass-panel"
         style={{
-          width: 380,
+          width: 390,
           maxWidth: '85vw',
           height: '100%',
-          background: 'var(--surface)',
-          borderLeft: '1px solid var(--border)',
+          background: 'rgba(22, 11, 13, 0.95)',
+          backdropFilter: 'blur(36px) saturate(140%)',
+          borderRadius: 0,
+          borderLeft: '1px solid var(--glass-border)',
           boxShadow: 'var(--shadow-elevated)',
           display: 'flex',
           flexDirection: 'column',
@@ -54,28 +57,28 @@ export const QueueDrawer: React.FC = () => {
         {/* Drawer Header */}
         <div
           style={{
-            height: 64,
-            padding: '0 20px',
+            height: 68,
+            padding: '0 24px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '1px solid var(--border-subtle)',
+            borderBottom: '1px solid var(--glass-border)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontFamily: 'var(--font-editorial)', fontSize: 18, fontWeight: 700 }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 700, color: 'var(--cream-bright)' }}>
               Up Next
             </span>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: 12, color: 'var(--champagne)' }}>
               ({upcomingTracks.length})
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {upcomingTracks.length > 0 && (
               <button
                 onClick={clearQueue}
-                style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 600, padding: '4px 8px' }}
+                style={{ fontSize: 12, color: 'var(--champagne)', fontWeight: 600, padding: '4px 8px' }}
                 title="Clear upcoming songs"
               >
                 Clear
@@ -84,7 +87,7 @@ export const QueueDrawer: React.FC = () => {
             <button
               onClick={() => setQueueDrawerOpen(false)}
               className="studio-close-btn"
-              style={{ width: 32, height: 32 }}
+              style={{ width: 34, height: 34 }}
             >
               <X size={16} />
             </button>
@@ -92,12 +95,13 @@ export const QueueDrawer: React.FC = () => {
         </div>
 
         {/* Scrollable Queue Content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '18px 20px' }}>
           {/* Currently Playing Card */}
           <div style={{ marginBottom: 24 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--champagne)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               NOW PLAYING
             </span>
+
             <div
               style={{
                 display: 'flex',
@@ -105,21 +109,22 @@ export const QueueDrawer: React.FC = () => {
                 gap: 12,
                 marginTop: 8,
                 padding: 12,
-                borderRadius: 12,
-                background: 'var(--surface-secondary)',
-                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-small)',
+                background: 'rgba(55, 13, 22, 0.75)',
+                border: '1px solid rgba(217, 188, 145, 0.25)',
+                boxShadow: '0 0 16px var(--champagne-glow)',
               }}
             >
               <img
                 src={currentTrack.artworkUrl}
                 alt={currentTrack.title}
-                style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover' }}
+                style={{ width: 46, height: 46, borderRadius: 8, objectFit: 'cover' }}
               />
               <div style={{ flex: 1, overflow: 'hidden' }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--cream-bright)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {currentTrack.title}
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                <div style={{ fontSize: 12, color: 'var(--muted-cream)' }}>
                   {currentTrack.artist}
                 </div>
               </div>
@@ -135,12 +140,12 @@ export const QueueDrawer: React.FC = () => {
 
           {/* Upcoming Section */}
           <div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               UPCOMING TRACKS
             </span>
 
             {upcomingTracks.length === 0 ? (
-              <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>
+              <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--muted-cream)', fontSize: 13 }}>
                 Queue is empty. Select a song or album to queue upcoming music.
               </div>
             ) : (
@@ -154,10 +159,10 @@ export const QueueDrawer: React.FC = () => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        padding: '8px 10px',
-                        borderRadius: 10,
-                        background: 'var(--surface)',
-                        border: '1px solid var(--border-subtle)',
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-small)',
+                        background: 'rgba(33, 16, 20, 0.65)',
+                        border: '1px solid var(--glass-border)',
                       }}
                     >
                       <div
@@ -167,27 +172,27 @@ export const QueueDrawer: React.FC = () => {
                         <img
                           src={track.artworkUrl}
                           alt={track.title}
-                          style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover' }}
+                          style={{ width: 38, height: 38, borderRadius: 6, objectFit: 'cover' }}
                         />
                         <div style={{ overflow: 'hidden' }}>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--cream-bright)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {track.title}
                           </div>
-                          <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                          <div style={{ fontSize: 11.5, color: 'var(--muted-cream)' }}>
                             {track.artist}
                           </div>
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                         {/* Move Up */}
                         {i > 0 && (
                           <button
                             onClick={() => reorderQueue(actualIndex, actualIndex - 1)}
-                            style={{ padding: 4, color: 'var(--text-muted)' }}
+                            style={{ padding: 5, color: 'var(--muted-cream)' }}
                             title="Move Up"
                           >
-                            <ChevronUp size={14} />
+                            <ChevronUp size={15} />
                           </button>
                         )}
 
@@ -195,20 +200,20 @@ export const QueueDrawer: React.FC = () => {
                         {i < upcomingTracks.length - 1 && (
                           <button
                             onClick={() => reorderQueue(actualIndex, actualIndex + 1)}
-                            style={{ padding: 4, color: 'var(--text-muted)' }}
+                            style={{ padding: 5, color: 'var(--muted-cream)' }}
                             title="Move Down"
                           >
-                            <ChevronDown size={14} />
+                            <ChevronDown size={15} />
                           </button>
                         )}
 
                         {/* Remove */}
                         <button
                           onClick={() => removeFromQueue(actualIndex)}
-                          style={{ padding: 4, color: 'var(--text-muted)', marginLeft: 4 }}
+                          style={{ padding: 5, color: 'var(--text-muted)', marginLeft: 4 }}
                           title="Remove from queue"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={15} />
                         </button>
                       </div>
                     </div>

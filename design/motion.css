@@ -1,0 +1,110 @@
+/* SONORA V3.0 Cinematic Motion System
+ * Intentional, fluid, physics-based transitions without generic bounces
+ */
+
+:root {
+  /* Cinematic Timing Curves */
+  --ease-cinematic: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+
+  /* Duration Standards */
+  --duration-instant: 100ms;
+  --duration-fast: 160ms;
+  --duration-normal: 280ms;
+  --duration-cinematic: 500ms;
+  --duration-ambient: 1200ms;
+}
+
+/* Transitions */
+.transition-glass {
+  transition: background-color var(--duration-normal) var(--ease-smooth),
+              border-color var(--duration-normal) var(--ease-smooth),
+              box-shadow var(--duration-normal) var(--ease-smooth),
+              transform var(--duration-normal) var(--ease-cinematic);
+}
+
+.transition-lyric {
+  transition: transform var(--duration-normal) var(--ease-cinematic),
+              opacity var(--duration-normal) var(--ease-smooth),
+              filter var(--duration-normal) var(--ease-smooth),
+              color var(--duration-fast) var(--ease-smooth);
+}
+
+/* Animations */
+@keyframes champagneShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes champagnePulse {
+  0%, 100% {
+    opacity: 0.85;
+    box-shadow: 0 0 24px rgba(217, 188, 145, 0.22);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 38px rgba(217, 188, 145, 0.38);
+  }
+}
+
+@keyframes letterReveal {
+  0% {
+    opacity: 0.25;
+    transform: translateY(3px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes vinylSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ambientMeshDrift {
+  0% {
+    transform: scale(1) translate(0%, 0%);
+  }
+  50% {
+    transform: scale(1.08) translate(-2%, 3%);
+  }
+  100% {
+    transform: scale(1) translate(0%, 0%);
+  }
+}
+
+@keyframes particleFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(0px) scale(0.5);
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-28px) scale(1.1);
+  }
+}
+
+/* Accessibility: Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

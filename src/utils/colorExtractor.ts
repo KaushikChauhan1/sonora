@@ -6,8 +6,8 @@ export interface ArtworkColors {
 const colorCache = new Map<string, ArtworkColors>();
 
 const DEFAULT_COLORS: ArtworkColors = {
-  dominant: [154, 134, 216],   // Editorial Lavender (#9A86D8)
-  secondary: [232, 229, 222],  // Soft Stone Border (#E8E5DE)
+  dominant: [84, 20, 33],      // Blood Red (#541421)
+  secondary: [217, 188, 145],  // Champagne Gold (#D9BC91)
 };
 
 /**
@@ -54,7 +54,7 @@ export async function extractArtworkColors(imageUrl: string): Promise<ArtworkCol
           // Compute perceived luminance
           const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
           // Skip pure black or blown out whites
-          if (lum < 30 || lum > 230) continue;
+          if (lum < 25 || lum > 235) continue;
 
           // Simple split: upper half vs lower half for dominant vs secondary
           if (i < data.length / 2) {
@@ -70,7 +70,7 @@ export async function extractArtworkColors(imageUrl: string): Promise<ArtworkCol
           }
         }
 
-        const dominant: [number, number, number] = count > 0
+        const dominant: [number, number, number] = count > 0 
           ? [Math.round(rSum / count), Math.round(gSum / count), Math.round(bSum / count)]
           : DEFAULT_COLORS.dominant;
 
@@ -96,10 +96,11 @@ export async function extractArtworkColors(imageUrl: string): Promise<ArtworkCol
 }
 
 /**
- * Updates document CSS variables with the extracted artwork colors.
+ * Updates CSS root custom properties with dynamic extracted colors.
  */
-export function applyArtworkColorsToRoot(colors: ArtworkColors) {
+export function applyArtworkColorsToRoot(colors: ArtworkColors): void {
+  if (typeof document === 'undefined') return;
   const root = document.documentElement;
-  root.style.setProperty('--artwork-dominant-rgb', colors.dominant.join(', '));
-  root.style.setProperty('--artwork-secondary-rgb', colors.secondary.join(', '));
+  root.style.setProperty('--artwork-dominant-rgb', `${colors.dominant[0]}, ${colors.dominant[1]}, ${colors.dominant[2]}`);
+  root.style.setProperty('--artwork-secondary-rgb', `${colors.secondary[0]}, ${colors.secondary[1]}, ${colors.secondary[2]}`);
 }

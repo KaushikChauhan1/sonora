@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Compass, Search, Library, Mic2 } from 'lucide-react';
+import { Compass, Search, Library, Mic2, Disc3 } from 'lucide-react';
 import { ViewMode } from '../types';
 import { Sidebar } from '../components/layout/Sidebar';
 import { TopAppBar } from '../components/layout/TopAppBar';
@@ -8,6 +8,8 @@ import { AmbientBackdrop } from '../components/player/AmbientBackdrop';
 import { DiscoverView } from '../features/discover/DiscoverView';
 import { SearchView } from '../features/search/SearchView';
 import { LibraryView } from '../features/library/LibraryView';
+import { ImmersivePlayer } from '../features/player/ImmersivePlayer';
+import { SettingsView } from '../features/settings/SettingsView';
 import { LyricsStudio } from '../features/lyrics-studio/LyricsStudio';
 import { QueueDrawer } from '../features/queue/QueueDrawer';
 import { usePlayerStore } from '../stores/usePlayerStore';
@@ -112,6 +114,7 @@ export const App: React.FC = () => {
       {/* Main Viewport */}
       <div className="main-viewport">
         <TopAppBar
+          currentView={currentView}
           onSearch={(q) => {
             setSearchQuery(q);
             setCurrentView('search');
@@ -120,16 +123,18 @@ export const App: React.FC = () => {
         />
 
         {currentView === 'discover' && <DiscoverView />}
+        {currentView === 'player' && <ImmersivePlayer onNavigateMode={(m) => setCurrentView(m)} />}
         {currentView === 'search' && <SearchView initialQuery={searchQuery} />}
         {currentView === 'library' && <LibraryView />}
+        {currentView === 'settings' && <SettingsView />}
         {currentView === 'lyrics-studio' && <DiscoverView />}
       </div>
 
-      {/* Persistent Docked Player Bar */}
-      <DockedPlayerBar />
+      {/* Persistent Docked Player Bar (hidden in full-screen player mode for uninterrupted immersion) */}
+      {currentView !== 'player' && <DockedPlayerBar />}
 
-      {/* Hero Overlays: Lyrics Studio & Queue Drawer */}
-      <LyricsStudio />
+      {/* Hero Overlays: Lyrics Studio (Mode C) & Queue Drawer */}
+      <LyricsStudio onNavigateMode={(m) => setCurrentView(m)} />
       <QueueDrawer />
 
       {/* Mobile Bottom Navigation Bar */}
@@ -140,6 +145,13 @@ export const App: React.FC = () => {
         >
           <Compass size={20} />
           <span>Explore</span>
+        </button>
+        <button
+          className={`mobile-nav-item ${currentView === 'player' ? 'active' : ''}`}
+          onClick={() => setCurrentView('player')}
+        >
+          <Disc3 size={20} />
+          <span>Player</span>
         </button>
         <button
           className={`mobile-nav-item ${currentView === 'search' ? 'active' : ''}`}

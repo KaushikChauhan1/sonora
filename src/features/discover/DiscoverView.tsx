@@ -51,8 +51,8 @@ export const DiscoverView: React.FC = () => {
           </div>
           <h1 className="editorial-hero-title">Music deserves a better interface.</h1>
           <p className="editorial-tagline" style={{ marginBottom: 20 }}>
-            Experience YouTube Music through independent light-glass design, millisecond word-by-word
-            lyrics synchronization, and cinematic album art immersion.
+            Experience YouTube Music through cinematic dark obsidian glass, millisecond word-level
+            lyrics synchronization, and immersive album art theater.
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>

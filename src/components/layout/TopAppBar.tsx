@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Search, X, Radio } from 'lucide-react';
+import { Search, X, Radio, Compass, Disc3, Mic2 } from 'lucide-react';
 import { ViewMode } from '../../types';
 import { useLibraryStore } from '../../stores/useLibraryStore';
+import { usePlayerStore } from '../../stores/usePlayerStore';
 import { checkBridgeStatus, connectYtmSession } from '../../services/metadata/ytmBridgeService';
 
 interface TopAppBarProps {
+  currentView: ViewMode;
   onSearch: (query: string) => void;
   onNavigate: (view: ViewMode) => void;
 }
 
-export const TopAppBar: React.FC<TopAppBarProps> = ({ onSearch, onNavigate }) => {
+export const TopAppBar: React.FC<TopAppBarProps> = ({ currentView, onSearch, onNavigate }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [bridgeConnected, setBridgeConnected] = useState<boolean>(false);
   const [showConnectModal, setShowConnectModal] = useState<boolean>(false);
@@ -17,6 +19,7 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({ onSearch, onNavigate }) =>
   const [connecting, setConnecting] = useState<boolean>(false);
 
   const addSearchTerm = useLibraryStore((s) => s.addSearchTerm);
+  const setLyricsStudioOpen = usePlayerStore((s) => s.setLyricsStudioOpen);
 
   useEffect(() => {
     checkBridgeStatus().then((status) => {
@@ -55,12 +58,13 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({ onSearch, onNavigate }) =>
 
   return (
     <header className="top-app-bar">
+      {/* Search Input Box */}
       <form onSubmit={handleSubmit} className="search-box-container">
         <Search size={16} className="search-input-icon" />
         <input
           type="text"
           className="search-input"
-          placeholder="Search tracks, artists, or albums..."
+          placeholder="Search tracks, artists, or lyrics..."
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
@@ -75,109 +79,104 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({ onSearch, onNavigate }) =>
         )}
       </form>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      {/* Mode Switcher Navigation Pills */}
+      <div className="top-bar-mode-pills hide-mobile">
+        <button
+          className={`mode-pill-btn ${currentView === 'discover' ? 'active' : ''}`}
+          onClick={() => onNavigate('discover')}
+          title="Mode A: Discover & Catalogues"
+        >
+          <Compass size={14} />
+          <span>Discover</span>
+        </button>
+
+        <button
+          className={`mode-pill-btn ${currentView === 'player' ? 'active' : ''}`}
+          onClick={() => onNavigate('player')}
+          title="Mode B: Cinematic Immersive Player"
+        >
+          <Disc3 size={14} />
+          <span>Player</span>
+        </button>
+
+        <button
+          className={`mode-pill-btn lyrics-accent ${currentView === 'lyrics-studio' ? 'active' : ''}`}
+          onClick={() => {
+            onNavigate('lyrics-studio');
+            setLyricsStudioOpen(true);
+          }}
+          title="Mode C: Synchronized Lyrics Focus"
+        >
+          <Mic2 size={14} />
+          <span>Lyrics Focus</span>
+        </button>
+      </div>
+
+      {/* Account Connection Status */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <button
           onClick={() => setShowConnectModal(true)}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '6px 12px',
-            borderRadius: 999,
-            background: bridgeConnected ? 'rgba(74, 186, 114, 0.16)' : 'rgba(74, 186, 114, 0.12)',
-            color: '#2D8A4E',
-            fontSize: 12,
-            fontWeight: 600,
-            border: `1px solid ${bridgeConnected ? '#2D8A4E' : 'rgba(45, 138, 78, 0.3)'}`,
-          }}
-          title="Channel @kaushik.thinks is synced with 257 tracks across 4 playlists"
+          className="account-pill-button glass-panel"
+          title={`Channel @kaushik.thinks is synced with 257 tracks (${bridgeConnected ? 'Live Bridge Connected' : 'Static Synced'})`}
         >
-          <Radio size={13} />
-          <span>@kaushik.thinks {bridgeConnected ? '(Live)' : '(Synced)'}</span>
+          <Radio size={13} className="accent-icon" />
+          <span>@kaushik.thinks</span>
+          <span
+            className="live-status-dot"
+            style={{ background: bridgeConnected ? '#4ABA72' : 'var(--champagne)' }}
+          />
         </button>
       </div>
 
       {/* CONNECT MODAL */}
       {showConnectModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(36, 35, 33, 0.45)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 120,
-          }}
-          onClick={() => setShowConnectModal(false)}
-        >
+        <div className="modal-backdrop-overlay" onClick={() => setShowConnectModal(false)}>
           <div
-            style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 20,
-              padding: 28,
-              width: 480,
-              maxWidth: '92vw',
-              boxShadow: 'var(--shadow-elevated)',
-            }}
+            className="modal-card-box glass-panel"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ fontFamily: 'var(--font-editorial)', fontSize: 20, fontWeight: 700, marginBottom: 8 }}>
-              Sync Your YouTube Music Account
-            </h2>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14 }}>
-              Get your exact YouTube Music <b>Recommendations</b>, <b>Liked Songs</b>, <b>Listening History</b>, and <b>Playlists</b> streamed through SONORA with mandatory word-by-word synchronized lyrics.
+            <div className="modal-header">
+              <h3 className="modal-title">YouTube Music Account Sync</h3>
+              <button
+                className="modal-close-icon"
+                onClick={() => setShowConnectModal(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p className="modal-desc">
+              Your channel <strong>@kaushik.thinks</strong> is actively mapped with <strong>257 tracks</strong> across 4 playlists:
+              <br />
+              <em>Chatpate 💅🏻, ✨🫠💅, Realise The Beat 👊, and BGM</em>.
             </p>
 
             <form onSubmit={handleConnect} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
-                  YouTube Music Cookie or cURL
-                </label>
-                <textarea
-                  rows={4}
-                  required
-                  placeholder="Paste your Cookie header or cURL from music.youtube.com DevTools..."
-                  value={cookieInput}
-                  onChange={(e) => setCookieInput(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: 10,
-                    border: '1px solid var(--border)',
-                    background: 'var(--surface-secondary)',
-                    fontSize: 12,
-                    fontFamily: 'monospace',
-                  }}
-                />
-              </div>
+              <label style={{ fontSize: 12, color: 'var(--muted-cream)' }}>
+                Optional: Paste session cookie if re-syncing private history or recommendations:
+              </label>
+              <textarea
+                value={cookieInput}
+                onChange={(e) => setCookieInput(e.target.value)}
+                placeholder="HSID=...; SSID=...; SID=...; SAPISID=..."
+                className="cookie-textarea"
+                rows={4}
+              />
 
-              <div style={{ background: 'var(--surface-secondary)', padding: 12, borderRadius: 10, fontSize: 11, color: 'var(--text-secondary)' }}>
-                <b>How to get your session in 20 seconds:</b>
-                <ol style={{ paddingLeft: 16, marginTop: 4 }}>
-                  <li>Open <a href="https://music.youtube.com" target="_blank" rel="noreferrer" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>music.youtube.com</a> and log in.</li>
-                  <li>Press <code>F12</code> → Network tab → filter by <code>browse</code>.</li>
-                  <li>Right-click any browse request → <b>Copy as cURL</b>. Paste it above!</li>
-                </ol>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
                 <button
                   type="button"
+                  className="secondary-glass-btn"
                   onClick={() => setShowConnectModal(false)}
-                  style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}
                 >
-                  Cancel
+                  Close
                 </button>
                 <button
                   type="submit"
+                  className="primary-glass-btn"
                   disabled={connecting}
-                  className="play-pause-master-btn"
-                  style={{ width: 'auto', height: 38, padding: '0 20px', borderRadius: 10, fontSize: 13, fontWeight: 600 }}
                 >
-                  {connecting ? 'Connecting...' : 'Connect & Sync'}
+                  {connecting ? 'Connecting...' : 'Save & Refresh'}
                 </button>
               </div>
             </form>

@@ -1,0 +1,51 @@
+:root {
+  /* Background: Dark Obsidian */
+  --bg-primary: #10090B;
+  --bg-secondary: #160B0D;
+  --bg-tertiary: #211014;
+
+  /* Wine and Crimson Depth Hierarchy */
+  --wine: #370D16;
+  --blood-red: #541421;
+  --crimson: #741D2D;
+  --vermilion: #A83245;
+
+  /* Typography: Warm Cream & Champagne */
+  --cream: #E8DCC5;
+  --cream-bright: #F6EBDD;
+  --champagne: #D9BC91;
+  --muted-cream: #BBAE9D;
+  --text-muted: #82736F;
+
+  /* Glass Panels & Hairlines */
+  --glass: rgba(55, 13, 22, 0.62);
+  --glass-elevated: rgba(33, 16, 20, 0.78);
+  --glass-docked: rgba(16, 9, 11, 0.88);
+  --glass-border: rgba(232, 220, 197, 0.10);
+  --glass-border-hover: rgba(217, 188, 145, 0.22);
+  --glass-blur: blur(26px) saturate(135%);
+
+  /* Ambient Glows */
+  --crimson-glow: rgba(168, 50, 69, 0.28);
+  --champagne-glow: rgba(217, 188, 145, 0.20);
+  --wine-glow: rgba(55, 13, 22, 0.45);
+
+  /* Geometry & Rounded Language */
+  --radius-small: 12px;
+  --radius-medium: 20px;
+  --radius-large: 28px;
+  --radius-xl: 36px;
+  --radius-pill: 999px;
+
+  /* Elevation Shadows */
+  --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.25);
+  --shadow-glass: 0 16px 48px rgba(0, 0, 0, 0.35);
+  --shadow-elevated: 0 24px 64px rgba(0, 0, 0, 0.50);
+  --shadow-active-lyric: 0 0 32px var(--champagne-glow);
+
+  /* Layout Constants */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 76px;
+  --docked-player-height: 88px;
+  --mobile-nav-height: 64px;
+}

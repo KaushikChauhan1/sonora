@@ -11,6 +11,16 @@ export function getYouTubeMusicUrl(track: Track): string {
 }
 
 /**
+ * Builds the deep link from a raw video ID.
+ */
+export function getYTHandoffUrl(videoId: string): string {
+  if (!videoId) {
+    return 'https://music.youtube.com/';
+  }
+  return `https://music.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
+}
+
+/**
  * Opens the track directly in YouTube Music in a new browser tab.
  */
 export function handoffToYouTubeMusic(track: Track) {

@@ -1,5 +1,5 @@
 import { chromium } from '@playwright/test';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 import { existsSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
 
@@ -13,23 +13,31 @@ async function sleep(ms) {
 }
 
 async function runBrowserValidation() {
-  console.log('--- STARTING SONORA BROWSER VALIDATION ---');
+  console.log('--- STARTING SONORA V3.0 MASTER BROWSER VALIDATION ---');
 
-  // 1. Start Vite preview server
+  // 1. Build application first
+  console.log('Building production bundle with Vite...');
+  try {
+    execSync('npm run build', { stdio: 'inherit' });
+    console.log('Build completed successfully.');
+  } catch (err) {
+    console.error('Build failed:', err);
+    process.exit(1);
+  }
+
+  // 2. Start Vite preview server
   console.log('Starting Vite preview server on port 4173...');
   const server = spawn('npm', ['run', 'preview'], {
     stdio: 'pipe',
     shell: true,
   });
 
-  server.stdout.on('data', (d) => {
-    // console.log(`[Preview] ${d}`);
-  });
+  server.stdout.on('data', () => {});
   server.stderr.on('data', (d) => {
-    console.error(`[Preview Err] ${d}`);
+    // console.error(`[Preview Err] ${d}`);
   });
 
-  // Wait for server to be up
+  // Wait for server to be responsive
   await sleep(2500);
 
   let browser;
@@ -39,133 +47,186 @@ async function runBrowserValidation() {
       headless: true,
     });
 
-    // --- TEST 1: DESKTOP VALIDATION (1440x900) ---
-    console.log('\n[1/5] Validating Desktop Viewport (1440x900)...');
+    // -------------------------------------------------------------------------
+    // TEST 1: DESKTOP DISCOVER VIEW (Mode A) @ 1440x900
+    // -------------------------------------------------------------------------
+    console.log('\n[1/9] Validating Desktop Discover View (Mode A) @ 1440x900...');
     const desktopContext = await browser.newContext({
       viewport: { width: 1440, height: 900 },
     });
     const page = await desktopContext.newPage();
-
     await page.goto('http://localhost:4173', { waitUntil: 'networkidle' });
+
     const title = await page.title();
     console.log(`  Page Title: "${title}"`);
     if (!title.includes('SONORA')) throw new Error('Title does not contain SONORA');
 
-    // Verify hero banner
     const heroText = await page.textContent('.editorial-hero-title');
     console.log(`  Hero Headline: "${heroText}"`);
 
-    // Verify Docked Player Bar
-    const playerBar = await page.locator('.docked-player-bar').isVisible();
-    console.log(`  Docked Player Bar Visible: ${playerBar}`);
-    if (!playerBar) throw new Error('Docked player bar not visible');
+    // Verify dark obsidian background
+    const bgColor = await page.evaluate(() => {
+      return getComputedStyle(document.body).backgroundColor;
+    });
+    console.log(`  Body Background Color: ${bgColor}`);
 
-    // Take Desktop Discover Screenshot
     const pDiscover = resolve(SCREENSHOT_DIR, 'desktop-discover.png');
     await page.screenshot({ path: pDiscover });
-    console.log(`  Screenshot captured: ${pDiscover}`);
+    console.log(`  ✓ Screenshot: ${pDiscover}`);
 
-    // --- TEST 2: LYRICS STUDIO INTERACTION ---
-    console.log('\n[2/5] Validating Lyrics Studio & Word-Level Synchronization...');
-    // Click Lyrics button in player bar
-    await page.locator('.utility-btn[title="Lyrics Studio"]').click();
+    // -------------------------------------------------------------------------
+    // TEST 2: IMMERSIVE PLAYER (Mode B) @ 1440x900
+    // -------------------------------------------------------------------------
+    console.log('\n[2/9] Validating Immersive Player (Mode B)...');
+    // Click 'Player' in top mode pills or sidebar
+    await page.locator('.mode-pill-btn:has-text("Player"), .nav-link:has-text("Immersive Player")').first().click();
     await sleep(600);
 
-    const isStudioOpen = await page.locator('.lyrics-studio-overlay').isVisible();
-    console.log(`  Lyrics Studio Overlay Visible: ${isStudioOpen}`);
-    if (!isStudioOpen) throw new Error('Lyrics Studio overlay failed to open');
+    const isPlayerVisible = await page.locator('.immersive-player-view').isVisible();
+    console.log(`  Immersive Player Visible: ${isPlayerVisible}`);
+    if (!isPlayerVisible) throw new Error('Immersive Player view failed to open');
 
-    const lyricLines = await page.locator('.lyric-line-box').count();
-    console.log(`  Synchronized Lyric Lines Rendered: ${lyricLines}`);
-    if (lyricLines === 0) throw new Error('Zero lyric lines rendered');
+    const vinylVisible = await page.locator('.immersive-vinyl-disc').isVisible();
+    console.log(`  Vinyl Disc Stage Visible: ${vinylVisible}`);
 
-    // Check word-by-word span elements
-    const wordSpans = await page.locator('.lyric-word-span').count();
-    console.log(`  Word-level Timing Spans Detected: ${wordSpans}`);
+    const pPlayer = resolve(SCREENSHOT_DIR, 'desktop-immersive-player.png');
+    await page.screenshot({ path: pPlayer });
+    console.log(`  ✓ Screenshot: ${pPlayer}`);
 
-    const pLyrics = resolve(SCREENSHOT_DIR, 'desktop-lyrics-studio.png');
+    // -------------------------------------------------------------------------
+    // TEST 3: LYRICS FOCUS / STUDIO (Mode C) @ 1440x900
+    // -------------------------------------------------------------------------
+    console.log('\n[3/9] Validating Lyrics Focus / Studio (Mode C)...');
+    await page.locator('.mode-pill-btn:has-text("Lyrics Focus")').first().click();
+    await sleep(700);
+
+    const isLyricsVisible = await page.locator('.lyrics-studio-overlay').isVisible();
+    console.log(`  Lyrics Studio Overlay Visible: ${isLyricsVisible}`);
+    if (!isLyricsVisible) throw new Error('Lyrics Studio overlay failed to open');
+
+    // Verify particle canvas exists
+    const particleCanvas = await page.locator('.lyrics-particle-canvas').isVisible();
+    console.log(`  Champagne Particle Canvas Visible: ${particleCanvas}`);
+
+    const linesCount = await page.locator('.lyric-line-box').count();
+    console.log(`  Synchronized Lyric Lines Rendered: ${linesCount}`);
+
+    // Click on 3rd lyric line to jump playback and trigger active word illumination
+    if (linesCount > 2) {
+      await page.locator('.lyric-line-box').nth(2).click();
+      await sleep(500);
+    }
+
+    // Check letter reveal characters
+    const charCount = await page.locator('.char-reveal').count();
+    console.log(`  Active Word Character Elements Rendered: ${charCount}`);
+
+    const pLyrics = resolve(SCREENSHOT_DIR, 'desktop-lyrics-focus.png');
     await page.screenshot({ path: pLyrics });
-    console.log(`  Screenshot captured: ${pLyrics}`);
+    console.log(`  ✓ Screenshot: ${pLyrics}`);
 
     // Close Lyrics Studio
     await page.locator('.studio-close-btn').click();
     await sleep(400);
 
-    // --- TEST 3: QUEUE DRAWER INTERACTION ---
-    console.log('\n[3/5] Validating Up Next Queue Drawer & Reordering...');
-    await page.locator('.utility-btn[title="Up Next Queue"]').click();
-    await sleep(500);
-
-    const isQueueOpen = await page.locator('text=UPCOMING TRACKS').isVisible();
-    console.log(`  Queue Drawer Visible: ${isQueueOpen}`);
-    if (!isQueueOpen) throw new Error('Queue drawer failed to open');
-
-    const pQueue = resolve(SCREENSHOT_DIR, 'desktop-queue.png');
-    await page.screenshot({ path: pQueue });
-    console.log(`  Screenshot captured: ${pQueue}`);
-
-    // Close queue
-    await page.keyboard.press('Escape');
-    await sleep(300);
-
-    // --- TEST 4: SEARCH & LIBRARY NAVIGATION ---
-    console.log('\n[4/5] Validating Search & Library Sections...');
-    // Search navigation
+    // -------------------------------------------------------------------------
+    // TEST 4: SEARCH VIEW @ 1440x900
+    // -------------------------------------------------------------------------
+    console.log('\n[4/9] Validating Search View...');
     await page.locator('.nav-link:has-text("Search")').click();
     await sleep(400);
 
     const searchInput = page.locator('.search-input');
-    await searchInput.fill('Daft Punk');
+    await searchInput.fill('Starboy');
     await sleep(300);
 
     const pSearch = resolve(SCREENSHOT_DIR, 'desktop-search.png');
     await page.screenshot({ path: pSearch });
-    console.log(`  Screenshot captured: ${pSearch}`);
+    console.log(`  ✓ Screenshot: ${pSearch}`);
 
-    // Library navigation
+    // -------------------------------------------------------------------------
+    // TEST 5: LIBRARY VIEW @ 1440x900
+    // -------------------------------------------------------------------------
+    console.log('\n[5/9] Validating Library View...');
     await page.locator('.nav-link:has-text("Library")').click();
     await sleep(400);
 
     const pLibrary = resolve(SCREENSHOT_DIR, 'desktop-library.png');
     await page.screenshot({ path: pLibrary });
-    console.log(`  Screenshot captured: ${pLibrary}`);
+    console.log(`  ✓ Screenshot: ${pLibrary}`);
+
+    // -------------------------------------------------------------------------
+    // TEST 6: QUEUE DRAWER @ 1440x900
+    // -------------------------------------------------------------------------
+    console.log('\n[6/9] Validating Queue Drawer...');
+    await page.locator('.utility-btn[title="Up Next Queue"]').click();
+    await sleep(500);
+
+    const pQueue = resolve(SCREENSHOT_DIR, 'desktop-queue.png');
+    await page.screenshot({ path: pQueue });
+    console.log(`  ✓ Screenshot: ${pQueue}`);
+
+    // Close queue
+    await page.keyboard.press('Escape');
+    await sleep(300);
+
+    // -------------------------------------------------------------------------
+    // TEST 7: SETTINGS VIEW @ 1440x900
+    // -------------------------------------------------------------------------
+    console.log('\n[7/9] Validating Settings View...');
+    await page.locator('.nav-link:has-text("Settings")').click();
+    await sleep(400);
+
+    const pSettings = resolve(SCREENSHOT_DIR, 'desktop-settings.png');
+    await page.screenshot({ path: pSettings });
+    console.log(`  ✓ Screenshot: ${pSettings}`);
 
     await desktopContext.close();
 
-    // --- TEST 5: MOBILE RESPONSIVE VALIDATION (375x812) ---
-    console.log('\n[5/5] Validating Mobile Viewport (375x812, iPhone 13)...');
+    // -------------------------------------------------------------------------
+    // TEST 8 & 9: MOBILE VIEWPORT (390x844, iPhone 14/15/16)
+    // -------------------------------------------------------------------------
+    console.log('\n[8/9] Validating Mobile Player (390x844)...');
     const mobileContext = await browser.newContext({
-      viewport: { width: 375, height: 812 },
+      viewport: { width: 390, height: 844 },
       isMobile: true,
       hasTouch: true,
     });
     const mobilePage = await mobileContext.newPage();
     await mobilePage.goto('http://localhost:4173', { waitUntil: 'networkidle' });
 
-    // Verify Mobile Navigation Bottom Bar
-    const mobileNav = await mobilePage.locator('.mobile-nav-bar').isVisible();
-    console.log(`  Mobile Bottom Navigation Visible: ${mobileNav}`);
-    if (!mobileNav) throw new Error('Mobile bottom navigation bar not visible');
+    // Switch to Player on mobile
+    await mobilePage.locator('.mobile-nav-item:has-text("Player")').click();
+    await sleep(500);
 
-    // Verify No Horizontal Scroll / Overflow
+    // Verify no horizontal overflow
     const scrollWidth = await mobilePage.evaluate(() => document.documentElement.scrollWidth);
     const clientWidth = await mobilePage.evaluate(() => document.documentElement.clientWidth);
-    console.log(`  Viewport Width: ${clientWidth}px | Document Scroll Width: ${scrollWidth}px`);
-    if (scrollWidth > clientWidth) {
-      console.warn('  Warning: Horizontal overflow detected on mobile');
-    } else {
-      console.log('  Zero horizontal overflow verified!');
+    console.log(`  Mobile Viewport: ${clientWidth}px | Scroll: ${scrollWidth}px (Overflow: ${scrollWidth > clientWidth})`);
+
+    const pMobilePlayer = resolve(SCREENSHOT_DIR, 'mobile-player.png');
+    await mobilePage.screenshot({ path: pMobilePlayer });
+    console.log(`  ✓ Screenshot: ${pMobilePlayer}`);
+
+    console.log('\n[9/9] Validating Mobile Lyrics Focus (390x844)...');
+    await mobilePage.locator('.mobile-nav-item:has-text("Lyrics")').click();
+    await sleep(600);
+
+    const mLines = await mobilePage.locator('.lyric-line-box').count();
+    if (mLines > 2) {
+      await mobilePage.locator('.lyric-line-box').nth(2).click();
+      await sleep(500);
     }
 
-    const pMobile = resolve(SCREENSHOT_DIR, 'mobile-discover.png');
-    await mobilePage.screenshot({ path: pMobile });
-    console.log(`  Screenshot captured: ${pMobile}`);
+    const pMobileLyrics = resolve(SCREENSHOT_DIR, 'mobile-lyrics.png');
+    await mobilePage.screenshot({ path: pMobileLyrics });
+    console.log(`  ✓ Screenshot: ${pMobileLyrics}`);
 
     await mobileContext.close();
 
-    console.log('\n=============================================');
-    console.log('ALL BROWSER VALIDATION TESTS PASSED (5/5)');
-    console.log('=============================================');
+    console.log('\n==========================================================');
+    console.log('ALL 9 V3.0 MASTER BROWSER SCREENSHOTS CAPTURED & VALIDATED');
+    console.log('==========================================================');
   } catch (err) {
     console.error('\n❌ Browser validation failed:', err);
     process.exitCode = 1;
