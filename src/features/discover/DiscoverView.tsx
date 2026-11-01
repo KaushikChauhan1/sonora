@@ -5,6 +5,7 @@ import {
   FEATURED_TRACKS,
   FEATURED_ALBUMS,
   EDITORIAL_PLAYLISTS,
+  KAUSHIK_PLAYLISTS,
 } from '../../services/metadata/catalogue';
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import { useQueueStore } from '../../stores/useQueueStore';
@@ -80,6 +81,56 @@ export const DiscoverView: React.FC = () => {
           className="hero-banner-artwork"
         />
       </div>
+
+      {/* Kaushik Thinks Synced Playlists Section */}
+      <section style={{ marginBottom: 36 }}>
+        <div className="section-header">
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+              <Sparkles size={14} color="var(--accent)" />
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                SYNCED CHANNEL: @KAUSHIK.THINKS
+              </span>
+            </div>
+            <h2 className="section-title">Your YouTube Music Playlists</h2>
+            <span className="section-subtitle">257 tracks synced directly from your YouTube Music channel</span>
+          </div>
+        </div>
+
+        <div className="bento-grid">
+          {KAUSHIK_PLAYLISTS.map((playlist) => (
+            <div
+              key={playlist.id}
+              className="track-card"
+              onClick={() => {
+                if (playlist.tracks.length > 0) {
+                  setQueue(playlist.tracks, 0);
+                  playTrack(playlist.tracks[0]);
+                }
+              }}
+            >
+              <div className="track-card-artwork-box">
+                <img src={playlist.artworkUrl} alt={playlist.title} className="track-card-artwork" />
+                <div className="track-card-play-overlay">
+                  <div className="play-circle-btn">
+                    <Play size={18} fill="currentColor" style={{ marginLeft: 2 }} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="track-card-info">
+                <div className="track-card-title">{playlist.title}</div>
+                <div className="track-card-artist" style={{ whiteSpace: 'normal', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                  {playlist.description}
+                </div>
+                <span style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 600, marginTop: 4 }}>
+                  {playlist.trackCount} tracks • Ready to stream
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Personalized YouTube Music Sections (When Bridge is Active) */}
       {personalizedSections.map((sec, secIdx) => (

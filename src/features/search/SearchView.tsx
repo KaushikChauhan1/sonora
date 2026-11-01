@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Play, Plus, Heart, Search as SearchIcon, Disc3 } from 'lucide-react';
-import { FEATURED_TRACKS, FEATURED_ALBUMS } from '../../services/metadata/catalogue';
+import { FEATURED_TRACKS, FEATURED_ALBUMS, KAUSHIK_PLAYLISTS } from '../../services/metadata/catalogue';
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import { useQueueStore } from '../../stores/useQueueStore';
 import { useLibraryStore } from '../../stores/useLibraryStore';
@@ -24,15 +24,20 @@ export const SearchView: React.FC<SearchViewProps> = ({ initialQuery = '' }) => 
 
   const cleanQ = query.trim().toLowerCase();
 
+  const allTracks = [
+    ...FEATURED_TRACKS,
+    ...KAUSHIK_PLAYLISTS.flatMap((p) => p.tracks),
+  ];
+
   const matchingTracks = cleanQ
-    ? FEATURED_TRACKS.filter(
+    ? allTracks.filter(
         (t) =>
           t.title.toLowerCase().includes(cleanQ) ||
           t.artist.toLowerCase().includes(cleanQ) ||
           t.genre?.toLowerCase().includes(cleanQ) ||
           t.album?.toLowerCase().includes(cleanQ)
       )
-    : FEATURED_TRACKS;
+    : allTracks;
 
   const matchingAlbums = cleanQ
     ? FEATURED_ALBUMS.filter(

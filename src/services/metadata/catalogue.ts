@@ -1,4 +1,17 @@
 import { Track, Album, Playlist, Lyric } from '../../types';
+import kaushikData from './kaushik_channel_data.json';
+
+export const KAUSHIK_CHANNEL_INFO = {
+  handle: kaushikData.channelHandle,
+  url: kaushikData.channelUrl,
+  id: kaushikData.channelId,
+  syncedAt: kaushikData.syncedAt
+};
+
+export const KAUSHIK_PLAYLISTS: Playlist[] = kaushikData.playlists.map(p => ({
+  ...p,
+  tracks: p.tracks as Track[]
+}));
 
 export const FEATURED_TRACKS: Track[] = [
   {
@@ -167,6 +180,7 @@ export const FEATURED_ALBUMS: Album[] = [
 ];
 
 export const EDITORIAL_PLAYLISTS: Playlist[] = [
+  ...KAUSHIK_PLAYLISTS,
   {
     id: 'playlist-morning-focus',
     title: 'Morning Light & Focus',

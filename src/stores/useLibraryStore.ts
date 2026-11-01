@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Track, Playlist } from '../types';
-import { EDITORIAL_PLAYLISTS, FEATURED_TRACKS } from '../services/metadata/catalogue';
+import { EDITORIAL_PLAYLISTS, FEATURED_TRACKS, KAUSHIK_PLAYLISTS } from '../services/metadata/catalogue';
 
 const STORAGE_KEYS = {
   LIKED: 'sonora_liked_tracks_v1',
@@ -45,9 +45,17 @@ function saveToStorage<T>(key: string, data: T) {
   }
 }
 
+const initialPlaylists = (() => {
+  const stored = loadFromStorage<Playlist[]>(STORAGE_KEYS.PLAYLISTS, EDITORIAL_PLAYLISTS);
+  const missingKaushik = KAUSHIK_PLAYLISTS.filter((kp) => !stored.some((sp) => sp.id === kp.id));
+  const merged = [...missingKaushik, ...stored];
+  saveToStorage(STORAGE_KEYS.PLAYLISTS, merged);
+  return merged;
+})();
+
 export const useLibraryStore = create<LibraryState>((set, get) => ({
   likedTrackIds: loadFromStorage<string[]>(STORAGE_KEYS.LIKED, ['track-1', 'track-2', 'track-4']),
-  playlists: loadFromStorage<Playlist[]>(STORAGE_KEYS.PLAYLISTS, EDITORIAL_PLAYLISTS),
+  playlists: initialPlaylists,
   recentTracks: loadFromStorage<Track[]>(STORAGE_KEYS.HISTORY, [FEATURED_TRACKS[0], FEATURED_TRACKS[1]]),
   searchHistory: loadFromStorage<string[]>(STORAGE_KEYS.SEARCH, ['The Weeknd', 'Daft Punk', 'Synthwave']),
 

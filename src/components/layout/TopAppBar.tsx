@@ -84,15 +84,16 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({ onSearch, onNavigate }) =>
             gap: 6,
             padding: '6px 12px',
             borderRadius: 999,
-            background: bridgeConnected ? 'rgba(74, 186, 114, 0.12)' : 'var(--accent-subtle)',
-            color: bridgeConnected ? '#2D8A4E' : 'var(--accent)',
+            background: bridgeConnected ? 'rgba(74, 186, 114, 0.16)' : 'rgba(74, 186, 114, 0.12)',
+            color: '#2D8A4E',
             fontSize: 12,
             fontWeight: 600,
-            border: `1px solid ${bridgeConnected ? '#2D8A4E' : 'var(--accent-border)'}`,
+            border: `1px solid ${bridgeConnected ? '#2D8A4E' : 'rgba(45, 138, 78, 0.3)'}`,
           }}
+          title="Channel @kaushik.thinks is synced with 257 tracks across 4 playlists"
         >
           <Radio size={13} />
-          <span>{bridgeConnected ? 'YTM Account Synced' : 'Sync YTM Account'}</span>
+          <span>@kaushik.thinks {bridgeConnected ? '(Live)' : '(Synced)'}</span>
         </button>
       </div>
 
