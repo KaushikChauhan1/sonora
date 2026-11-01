@@ -130,6 +130,22 @@ export class YouTubeEmbedPlayer {
     }
   }
 
+  public loadPlaylist(playlistId: string) {
+    if (!this.isPlayerReady || !this.player) {
+      return;
+    }
+    try {
+      this.player.loadPlaylist({
+        list: playlistId,
+        listType: 'playlist',
+        index: 0,
+        startSeconds: 0,
+      });
+    } catch (err) {
+      console.warn('loadPlaylist error:', err);
+    }
+  }
+
   public play() {
     if (this.player && this.isPlayerReady && this.player.playVideo) {
       try {

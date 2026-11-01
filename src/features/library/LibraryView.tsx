@@ -1,16 +1,28 @@
 import React, { useState } from 'react';
-import { Heart, Play, Plus, Trash2, Clock } from 'lucide-react';
-import { Track } from '../../types';
+import { Heart, Play, Plus, Trash2, Clock, RefreshCw } from 'lucide-react';
+import { Track, Playlist } from '../../types';
 import { FEATURED_TRACKS } from '../../services/metadata/catalogue';
 import { useLibraryStore } from '../../stores/useLibraryStore';
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import { useQueueStore } from '../../stores/useQueueStore';
+import {
+  extractPlaylistId,
+  fetchPlaylistWithApiKey,
+  createDirectSyncedPlaylist,
+} from '../../services/metadata/youtubePlaylistSync';
 
 export const LibraryView: React.FC = () => {
   const [tab, setTab] = useState<'liked' | 'playlists' | 'history'>('liked');
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [showSyncModal, setShowSyncModal] = useState<boolean>(false);
   const [newTitle, setNewTitle] = useState<string>('');
   const [newDesc, setNewDesc] = useState<string>('');
+
+  // Sync state
+  const [syncInput, setSyncInput] = useState<string>('');
+  const [apiKeyInput, setApiKeyInput] = useState<string>('');
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   const {
     likedTrackIds,
@@ -19,9 +31,10 @@ export const LibraryView: React.FC = () => {
     toggleLike,
     createPlaylist,
     deletePlaylist,
+    addSyncedPlaylist,
   } = useLibraryStore();
 
-  const playTrack = usePlayerStore((s) => s.playTrack);
+  const { playTrack, playPlaylist } = usePlayerStore();
   const { setQueue } = useQueueStore();
 
   // Find full Track objects for liked IDs
@@ -46,6 +59,44 @@ export const LibraryView: React.FC = () => {
     }
   };
 
+  const handleSyncSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSyncError(null);
+    const playlistId = extractPlaylistId(syncInput);
+    if (!playlistId) {
+      setSyncError('Invalid YouTube Playlist URL or ID. Please provide a valid playlist link or ID.');
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      if (apiKeyInput.trim()) {
+        const fetched = await fetchPlaylistWithApiKey(playlistId, apiKeyInput.trim());
+        const playlist: Playlist = {
+          id: `playlist-yt-${playlistId}`,
+          title: fetched.title,
+          description: fetched.description || `Imported from YouTube Playlist: ${playlistId}`,
+          artworkUrl: fetched.artworkUrl,
+          trackCount: fetched.tracks.length,
+          tracks: fetched.tracks,
+          isCustom: true,
+          createdAt: new Date().toISOString().split('T')[0],
+        };
+        addSyncedPlaylist(playlist);
+      } else {
+        const directPlaylist = createDirectSyncedPlaylist(playlistId);
+        addSyncedPlaylist(directPlaylist);
+      }
+
+      setSyncInput('');
+      setShowSyncModal(false);
+    } catch (err: any) {
+      setSyncError(err.message || 'Failed to sync playlist.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div className="view-scroll-container">
       {/* Header */}
@@ -58,14 +109,29 @@ export const LibraryView: React.FC = () => {
         </div>
 
         {tab === 'playlists' && (
-          <button
-            className="play-pause-master-btn"
-            style={{ width: 'auto', height: 38, padding: '0 16px', borderRadius: 19, gap: 6, display: 'inline-flex' }}
-            onClick={() => setShowCreateModal(true)}
-          >
-            <Plus size={16} />
-            <span style={{ fontSize: 13, fontWeight: 600 }}>New Playlist</span>
-          </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              className="ytm-handoff-btn"
+              style={{ padding: '0 14px', height: 38, borderRadius: 19 }}
+              onClick={() => {
+                setSyncError(null);
+                setShowSyncModal(true);
+              }}
+              title="Sync YouTube or YouTube Music Playlist"
+            >
+              <RefreshCw size={14} />
+              <span>Sync YT Playlist</span>
+            </button>
+
+            <button
+              className="play-pause-master-btn"
+              style={{ width: 'auto', height: 38, padding: '0 16px', borderRadius: 19, gap: 6, display: 'inline-flex' }}
+              onClick={() => setShowCreateModal(true)}
+            >
+              <Plus size={16} />
+              <span style={{ fontSize: 13, fontWeight: 600 }}>New Playlist</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -207,6 +273,9 @@ export const LibraryView: React.FC = () => {
                   if (playlist.tracks.length > 0) {
                     setQueue(playlist.tracks, 0);
                     playTrack(playlist.tracks[0]);
+                  } else if (playlist.id.startsWith('playlist-yt-')) {
+                    const ytId = playlist.id.replace('playlist-yt-', '');
+                    playPlaylist(ytId);
                   }
                 }}
               >
@@ -402,6 +471,124 @@ export const LibraryView: React.FC = () => {
                   style={{ width: 'auto', height: 38, padding: '0 18px', borderRadius: 10, fontSize: 13, fontWeight: 600 }}
                 >
                   Create
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* SYNC YOUTUBE PLAYLIST MODAL */}
+      {showSyncModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(36, 35, 33, 0.45)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 110,
+          }}
+          onClick={() => setShowSyncModal(false)}
+        >
+          <div
+            style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 20,
+              padding: 28,
+              width: 440,
+              maxWidth: '92vw',
+              boxShadow: 'var(--shadow-elevated)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <RefreshCw size={20} color="var(--accent)" />
+              <h2 style={{ fontFamily: 'var(--font-editorial)', fontSize: 20, fontWeight: 700 }}>
+                Sync YouTube Playlist
+              </h2>
+            </div>
+
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+              Paste any public or unlisted YouTube Music or YouTube playlist link to sync it with your SONORA library.
+            </p>
+
+            <form onSubmit={handleSyncSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
+                  Playlist Link or ID
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="https://music.youtube.com/playlist?list=PL..."
+                  value={syncInput}
+                  onChange={(e) => setSyncInput(e.target.value)}
+                  style={{
+                    width: '100%',
+                    height: 40,
+                    padding: '0 12px',
+                    borderRadius: 10,
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface-secondary)',
+                    fontSize: 13,
+                  }}
+                />
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    Google API Key (Optional)
+                  </label>
+                  <span style={{ fontSize: 11, color: 'var(--accent)' }}>
+                    Full tracklist import
+                  </span>
+                </div>
+                <input
+                  type="password"
+                  placeholder="AIzaSy... (optional for full track extraction)"
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
+                  style={{
+                    width: '100%',
+                    height: 40,
+                    padding: '0 12px',
+                    borderRadius: 10,
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface-secondary)',
+                    fontSize: 13,
+                  }}
+                />
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, display: 'block' }}>
+                  Without an API key, the playlist is synced directly into the player engine.
+                </span>
+              </div>
+
+              {syncError && (
+                <div style={{ color: 'var(--liked-red)', fontSize: 12, background: 'var(--liked-red-subtle)', padding: 8, borderRadius: 8 }}>
+                  {syncError}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowSyncModal(false)}
+                  style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSyncing}
+                  className="play-pause-master-btn"
+                  style={{ width: 'auto', height: 38, padding: '0 20px', borderRadius: 10, fontSize: 13, fontWeight: 600 }}
+                >
+                  {isSyncing ? 'Syncing...' : 'Sync Playlist'}
                 </button>
               </div>
             </form>

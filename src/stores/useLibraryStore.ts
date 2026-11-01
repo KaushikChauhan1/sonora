@@ -19,6 +19,7 @@ interface LibraryState {
   toggleLike: (trackId: string) => boolean;
   isLiked: (trackId: string) => boolean;
   createPlaylist: (title: string, description?: string) => Playlist;
+  addSyncedPlaylist: (playlist: Playlist) => void;
   deletePlaylist: (playlistId: string) => void;
   addTrackToPlaylist: (playlistId: string, track: Track) => void;
   removeTrackFromPlaylist: (playlistId: string, trackId: string) => void;
@@ -80,6 +81,14 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     set({ playlists: updated });
     saveToStorage(STORAGE_KEYS.PLAYLISTS, updated);
     return newPlaylist;
+  },
+
+  addSyncedPlaylist: (playlist: Playlist) => {
+    // Avoid duplicate playlists
+    const filtered = get().playlists.filter((p) => p.id !== playlist.id);
+    const updated = [playlist, ...filtered];
+    set({ playlists: updated });
+    saveToStorage(STORAGE_KEYS.PLAYLISTS, updated);
   },
 
   deletePlaylist: (playlistId: string) => {

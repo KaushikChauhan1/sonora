@@ -28,6 +28,7 @@ interface PlayerStoreState {
   // Actions
   initEmbedPlayer: (containerId: string) => void;
   playTrack: (track: Track) => Promise<void>;
+  playPlaylist: (playlistId: string) => void;
   togglePlay: () => void;
   seek: (seconds: number) => void;
   setVolume: (volume: number) => void;
@@ -124,6 +125,14 @@ export const usePlayerStore = create<PlayerStoreState>((set, get) => ({
       set({ lyrics, isLyricsLoading: false });
     } catch {
       set({ lyrics: [], isLyricsLoading: false });
+    }
+  },
+
+  playPlaylist: (playlistId: string) => {
+    const { embedPlayer } = get();
+    if (embedPlayer) {
+      embedPlayer.loadPlaylist(playlistId);
+      set({ isPlaying: true });
     }
   },
 
