@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Search, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, X, Radio } from 'lucide-react';
 import { ViewMode } from '../../types';
 import { useLibraryStore } from '../../stores/useLibraryStore';
+import { checkBridgeStatus, connectYtmSession } from '../../services/metadata/ytmBridgeService';
 
 interface TopAppBarProps {
   onSearch: (query: string) => void;
@@ -10,7 +11,18 @@ interface TopAppBarProps {
 
 export const TopAppBar: React.FC<TopAppBarProps> = ({ onSearch, onNavigate }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [bridgeConnected, setBridgeConnected] = useState<boolean>(false);
+  const [showConnectModal, setShowConnectModal] = useState<boolean>(false);
+  const [cookieInput, setCookieInput] = useState<string>('');
+  const [connecting, setConnecting] = useState<boolean>(false);
+
   const addSearchTerm = useLibraryStore((s) => s.addSearchTerm);
+
+  useEffect(() => {
+    checkBridgeStatus().then((status) => {
+      setBridgeConnected(status.connected);
+    });
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +36,21 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({ onSearch, onNavigate }) =>
   const handleClear = () => {
     setSearchTerm('');
     onSearch('');
+  };
+
+  const handleConnect = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cookieInput.trim()) return;
+    setConnecting(true);
+    const ok = await connectYtmSession(cookieInput.trim());
+    setConnecting(false);
+    if (ok) {
+      setBridgeConnected(true);
+      setShowConnectModal(false);
+      window.location.reload();
+    } else {
+      alert('Could not connect to local bridge. Make sure "npm run bridge" is running.');
+    }
   };
 
   return (
@@ -49,10 +76,113 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({ onSearch, onNavigate }) =>
       </form>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>
-          Music deserves a better interface.
-        </span>
+        <button
+          onClick={() => setShowConnectModal(true)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 12px',
+            borderRadius: 999,
+            background: bridgeConnected ? 'rgba(74, 186, 114, 0.12)' : 'var(--accent-subtle)',
+            color: bridgeConnected ? '#2D8A4E' : 'var(--accent)',
+            fontSize: 12,
+            fontWeight: 600,
+            border: `1px solid ${bridgeConnected ? '#2D8A4E' : 'var(--accent-border)'}`,
+          }}
+        >
+          <Radio size={13} />
+          <span>{bridgeConnected ? 'YTM Account Synced' : 'Sync YTM Account'}</span>
+        </button>
       </div>
+
+      {/* CONNECT MODAL */}
+      {showConnectModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(36, 35, 33, 0.45)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 120,
+          }}
+          onClick={() => setShowConnectModal(false)}
+        >
+          <div
+            style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 20,
+              padding: 28,
+              width: 480,
+              maxWidth: '92vw',
+              boxShadow: 'var(--shadow-elevated)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ fontFamily: 'var(--font-editorial)', fontSize: 20, fontWeight: 700, marginBottom: 8 }}>
+              Sync Your YouTube Music Account
+            </h2>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14 }}>
+              Get your exact YouTube Music <b>Recommendations</b>, <b>Liked Songs</b>, <b>Listening History</b>, and <b>Playlists</b> streamed through SONORA with mandatory word-by-word synchronized lyrics.
+            </p>
+
+            <form onSubmit={handleConnect} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
+                  YouTube Music Cookie or cURL
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder="Paste your Cookie header or cURL from music.youtube.com DevTools..."
+                  value={cookieInput}
+                  onChange={(e) => setCookieInput(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: 10,
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface-secondary)',
+                    fontSize: 12,
+                    fontFamily: 'monospace',
+                  }}
+                />
+              </div>
+
+              <div style={{ background: 'var(--surface-secondary)', padding: 12, borderRadius: 10, fontSize: 11, color: 'var(--text-secondary)' }}>
+                <b>How to get your session in 20 seconds:</b>
+                <ol style={{ paddingLeft: 16, marginTop: 4 }}>
+                  <li>Open <a href="https://music.youtube.com" target="_blank" rel="noreferrer" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>music.youtube.com</a> and log in.</li>
+                  <li>Press <code>F12</code> → Network tab → filter by <code>browse</code>.</li>
+                  <li>Right-click any browse request → <b>Copy as cURL</b>. Paste it above!</li>
+                </ol>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowConnectModal(false)}
+                  style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={connecting}
+                  className="play-pause-master-btn"
+                  style={{ width: 'auto', height: 38, padding: '0 20px', borderRadius: 10, fontSize: 13, fontWeight: 600 }}
+                >
+                  {connecting ? 'Connecting...' : 'Connect & Sync'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

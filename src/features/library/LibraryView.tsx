@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, Play, Plus, Trash2, Clock, RefreshCw } from 'lucide-react';
 import { Track, Playlist } from '../../types';
 import { FEATURED_TRACKS } from '../../services/metadata/catalogue';
@@ -10,6 +10,7 @@ import {
   fetchPlaylistWithApiKey,
   createDirectSyncedPlaylist,
 } from '../../services/metadata/youtubePlaylistSync';
+import { fetchUserLikedMusic, fetchUserHistory } from '../../services/metadata/ytmBridgeService';
 
 export const LibraryView: React.FC = () => {
   const [tab, setTab] = useState<'liked' | 'playlists' | 'history'>('liked');
@@ -23,6 +24,19 @@ export const LibraryView: React.FC = () => {
   const [apiKeyInput, setApiKeyInput] = useState<string>('');
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+
+  // YTM Account Bridge synced data
+  const [ytmLikedTracks, setYtmLikedTracks] = useState<Track[]>([]);
+  const [ytmHistoryTracks, setYtmHistoryTracks] = useState<Track[]>([]);
+
+  useEffect(() => {
+    fetchUserLikedMusic().then((t) => {
+      if (t && t.length > 0) setYtmLikedTracks(t);
+    });
+    fetchUserHistory().then((h) => {
+      if (h && h.length > 0) setYtmHistoryTracks(h);
+    });
+  }, []);
 
   const {
     likedTrackIds,
@@ -38,14 +52,24 @@ export const LibraryView: React.FC = () => {
   const { setQueue } = useQueueStore();
 
   // Find full Track objects for liked IDs
-  const likedTracks: Track[] = likedTrackIds
+  const localLikedTracks: Track[] = likedTrackIds
     .map((id) => FEATURED_TRACKS.find((t) => t.id === id))
     .filter((t): t is Track => t !== undefined);
 
+  const displayLikedTracks: Track[] = [
+    ...ytmLikedTracks,
+    ...localLikedTracks.filter((lt) => !ytmLikedTracks.some((yt) => yt.videoId === lt.videoId)),
+  ];
+
+  const displayHistoryTracks: Track[] = [
+    ...ytmHistoryTracks,
+    ...recentTracks.filter((rt) => !ytmHistoryTracks.some((yt) => yt.videoId === rt.videoId)),
+  ];
+
   const handlePlayLikedAll = () => {
-    if (likedTracks.length > 0) {
-      setQueue(likedTracks, 0);
-      playTrack(likedTracks[0]);
+    if (displayLikedTracks.length > 0) {
+      setQueue(displayLikedTracks, 0);
+      playTrack(displayLikedTracks[0]);
     }
   };
 
@@ -141,7 +165,7 @@ export const LibraryView: React.FC = () => {
           className={`genre-pill ${tab === 'liked' ? 'active' : ''}`}
           onClick={() => setTab('liked')}
         >
-          Liked Songs ({likedTracks.length})
+          Liked Songs ({displayLikedTracks.length})
         </button>
         <button
           className={`genre-pill ${tab === 'playlists' ? 'active' : ''}`}
@@ -153,14 +177,14 @@ export const LibraryView: React.FC = () => {
           className={`genre-pill ${tab === 'history' ? 'active' : ''}`}
           onClick={() => setTab('history')}
         >
-          Recent History ({recentTracks.length})
+          Recent History ({displayHistoryTracks.length})
         </button>
       </div>
 
       {/* LIKED SONGS VIEW */}
       {tab === 'liked' && (
         <section style={{ marginBottom: 40 }}>
-          {likedTracks.length === 0 ? (
+          {displayLikedTracks.length === 0 ? (
             <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-secondary)' }}>
               <Heart size={44} color="var(--text-muted)" style={{ margin: '0 auto 12px auto' }} />
               <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -182,12 +206,12 @@ export const LibraryView: React.FC = () => {
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Play All Liked</span>
                 </button>
                 <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                  {likedTracks.length} tracks saved
+                  {displayLikedTracks.length} tracks saved
                 </span>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {likedTracks.map((track, i) => (
+                {displayLikedTracks.map((track, i) => (
                   <div
                     key={track.id}
                     style={{
@@ -210,7 +234,7 @@ export const LibraryView: React.FC = () => {
                         alt={track.title}
                         style={{ width: 42, height: 42, borderRadius: 8, objectFit: 'cover', cursor: 'pointer' }}
                         onClick={() => {
-                          setQueue(likedTracks, i);
+                          setQueue(displayLikedTracks, i);
                           playTrack(track);
                         }}
                       />
@@ -218,7 +242,7 @@ export const LibraryView: React.FC = () => {
                         <span
                           style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', cursor: 'pointer' }}
                           onClick={() => {
-                            setQueue(likedTracks, i);
+                            setQueue(displayLikedTracks, i);
                             playTrack(track);
                           }}
                         >
@@ -245,7 +269,7 @@ export const LibraryView: React.FC = () => {
                         className="play-pause-master-btn"
                         style={{ width: 32, height: 32 }}
                         onClick={() => {
-                          setQueue(likedTracks, i);
+                          setQueue(displayLikedTracks, i);
                           playTrack(track);
                         }}
                         title="Play"
@@ -321,19 +345,19 @@ export const LibraryView: React.FC = () => {
       {/* HISTORY VIEW */}
       {tab === 'history' && (
         <section style={{ marginBottom: 40 }}>
-          {recentTracks.length === 0 ? (
+          {displayHistoryTracks.length === 0 ? (
             <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-secondary)' }}>
               <Clock size={44} color="var(--text-muted)" style={{ margin: '0 auto 12px auto' }} />
               <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
                 No play history yet
               </div>
               <p style={{ fontSize: 13, marginTop: 4 }}>
-                Songs you play in SONORA will be recorded here for quick replay.
+                Songs you play in SONORA or on YouTube Music will appear here for instant replay.
               </p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {recentTracks.map((track, i) => (
+              {displayHistoryTracks.map((track, i) => (
                 <div
                   key={`${track.id}-${i}`}
                   style={{

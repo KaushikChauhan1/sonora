@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Play, Sparkles, Disc3 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Play, Sparkles, Disc3, Radio } from 'lucide-react';
 import { Track } from '../../types';
 import {
   FEATURED_TRACKS,
@@ -9,12 +9,22 @@ import {
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import { useQueueStore } from '../../stores/useQueueStore';
 import { useLibraryStore } from '../../stores/useLibraryStore';
+import { fetchPersonalizedHome, RecommendationSection } from '../../services/metadata/ytmBridgeService';
 
 export const DiscoverView: React.FC = () => {
   const [selectedGenre, setSelectedGenre] = useState<string>('All');
+  const [personalizedSections, setPersonalizedSections] = useState<RecommendationSection[]>([]);
   const playTrack = usePlayerStore((s) => s.playTrack);
   const setQueue = useQueueStore((s) => s.setQueue);
   const recentTracks = useLibraryStore((s) => s.recentTracks);
+
+  useEffect(() => {
+    fetchPersonalizedHome().then((sections) => {
+      if (sections && sections.length > 0) {
+        setPersonalizedSections(sections);
+      }
+    });
+  }, []);
 
   const heroTrack = FEATURED_TRACKS[0]; // Blinding Lights
 
@@ -70,6 +80,50 @@ export const DiscoverView: React.FC = () => {
           className="hero-banner-artwork"
         />
       </div>
+
+      {/* Personalized YouTube Music Sections (When Bridge is Active) */}
+      {personalizedSections.map((sec, secIdx) => (
+        <section key={secIdx} style={{ marginBottom: 36 }}>
+          <div className="section-header">
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                <Radio size={14} color="var(--accent)" />
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  YTM PERSONALIZED MIX
+                </span>
+              </div>
+              <h2 className="section-title">{sec.title}</h2>
+              <span className="section-subtitle">Synced directly from your YouTube Music recommendations</span>
+            </div>
+          </div>
+
+          <div className="horizontal-shelf">
+            {sec.tracks.map((track, idx) => (
+              <div
+                key={`${track.id}-${idx}`}
+                className="shelf-item track-card"
+                onClick={() => {
+                  setQueue(sec.tracks, idx);
+                  playTrack(track);
+                }}
+              >
+                <div className="track-card-artwork-box">
+                  <img src={track.artworkUrl} alt={track.title} className="track-card-artwork" />
+                  <div className="track-card-play-overlay">
+                    <div className="play-circle-btn">
+                      <Play size={18} fill="currentColor" style={{ marginLeft: 2 }} />
+                    </div>
+                  </div>
+                </div>
+                <div className="track-card-info">
+                  <div className="track-card-title">{track.title}</div>
+                  <div className="track-card-artist">{track.artist}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
 
       {/* Mood & Genre Filters */}
       <div className="genre-pills-row">
