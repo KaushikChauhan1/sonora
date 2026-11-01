@@ -1,0 +1,329 @@
+/* Docked Bottom Player Bar */
+.docked-player-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--docked-player-height);
+  background: var(--glass-docked);
+  backdrop-filter: var(--glass-blur-lg);
+  -webkit-backdrop-filter: var(--glass-blur-lg);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 40;
+  box-shadow: 0 -4px 24px rgba(36, 35, 33, 0.04);
+}
+
+/* Left Track Info */
+.player-left-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 280px;
+  min-width: 200px;
+}
+
+.player-artwork-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  cursor: pointer;
+  box-shadow: var(--shadow-subtle);
+}
+
+.player-artwork {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.player-track-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.player-track-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.player-track-title:hover {
+  text-decoration: underline;
+}
+
+.player-track-artist {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.like-button {
+  padding: 8px;
+  color: var(--text-muted);
+  border-radius: 999px;
+  transition: all var(--duration-fast);
+}
+
+.like-button:hover {
+  color: var(--liked-red);
+  background: var(--liked-red-subtle);
+}
+
+.like-button.liked {
+  color: var(--liked-red);
+}
+
+/* Center Controls & Scrubber */
+.player-center-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 600px;
+  width: 100%;
+  padding: 0 16px;
+}
+
+.player-transport-controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.transport-btn {
+  color: var(--text-secondary);
+  padding: 6px;
+  border-radius: 999px;
+  transition: all var(--duration-fast);
+}
+
+.transport-btn:hover {
+  color: var(--text-primary);
+  background: var(--surface-secondary);
+}
+
+.transport-btn.active {
+  color: var(--accent);
+}
+
+.play-pause-master-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: var(--text-primary);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-elevated);
+  transition: all var(--duration-fast) var(--ease-spring);
+}
+
+.play-pause-master-btn:hover {
+  transform: scale(1.06);
+  background: #000000;
+}
+
+/* Scrubber Timeline */
+.player-timeline-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.timeline-timestamp {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  min-width: 38px;
+  text-align: center;
+}
+
+.scrubber-track-container {
+  flex: 1;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.scrubber-track-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--surface-tertiary);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+  transition: height var(--duration-fast);
+}
+
+.scrubber-track-container:hover .scrubber-track-bar {
+  height: 6px;
+}
+
+.scrubber-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  position: relative;
+}
+
+.scrubber-buffered-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(133, 130, 124, 0.18);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Right Section & Utilities */
+.player-right-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 280px;
+  min-width: 200px;
+}
+
+.utility-btn {
+  color: var(--text-secondary);
+  padding: 8px;
+  border-radius: 8px;
+  position: relative;
+  transition: all var(--duration-fast);
+}
+
+.utility-btn:hover {
+  color: var(--text-primary);
+  background: var(--surface-secondary);
+}
+
+.utility-btn.active {
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.badge-count {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+/* Volume Slider */
+.volume-control-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 110px;
+}
+
+.volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--surface-tertiary);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform var(--duration-fast);
+}
+
+.volume-slider:hover::-webkit-slider-thumb {
+  transform: scale(1.25);
+  background: var(--accent);
+}
+
+/* External YouTube Music Handoff Button */
+.ytm-handoff-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  box-shadow: var(--shadow-subtle);
+  transition: all var(--duration-fast);
+}
+
+.ytm-handoff-btn:hover {
+  border-color: #FF0000;
+  color: #CC0000;
+  background: rgba(255, 0, 0, 0.04);
+}
+
+/* Responsive Docked Player */
+@media (max-width: 768px) {
+  .docked-player-bar {
+    bottom: var(--mobile-nav-height);
+    padding: 0 12px;
+    height: 72px;
+  }
+  .player-left-section {
+    width: auto;
+    flex: 1;
+    min-width: 0;
+  }
+  .player-center-section {
+    width: auto;
+    max-width: none;
+    padding: 0;
+  }
+  .player-timeline-box,
+  .volume-control-box,
+  .transport-btn.shuffle,
+  .transport-btn.repeat,
+  .transport-btn.prev,
+  .ytm-handoff-btn {
+    display: none;
+  }
+  .player-right-section {
+    width: auto;
+    min-width: 0;
+    gap: 4px;
+  }
+}

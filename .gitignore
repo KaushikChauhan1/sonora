@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing and coverage
+coverage/
+test-results/
+playwright-report/
+blob-report/
+
+# Build artifacts
+dist/
+dist-ssr/
+*.local
+
+# Cloned Upstream Research Repositories (isolated)
+research/repositories/*
+!research/repositories/.gitkeep
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# OS metadata
+.DS_Store
+Thumbs.db
