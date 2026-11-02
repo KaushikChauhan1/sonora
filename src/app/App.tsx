@@ -89,18 +89,19 @@ export const App: React.FC = () => {
       {/* Background Ambient Canvas */}
       <AmbientBackdrop />
 
-      {/* Hidden YouTube IFrame Embed Player Container */}
+      {/* Active YouTube IFrame Embed Player Container (In-viewport to prevent Chromium timer suspension) */}
       <div
         id="sonora-yt-player-container"
         style={{
           position: 'fixed',
-          top: -9999,
-          left: -9999,
-          width: 320,
-          height: 180,
+          bottom: 0,
+          left: 0,
+          width: 4,
+          height: 4,
           pointerEvents: 'none',
-          opacity: 0,
-          zIndex: -1,
+          opacity: 0.005,
+          zIndex: -9999,
+          overflow: 'hidden',
         }}
       />
 

@@ -202,16 +202,41 @@
 
 ---
 
+### Phase 11: Real-Time Playback Synchronization & Dual-Clock Engine Architecture
+- **Status:** COMPLETED
+- **Actions Completed:**
+  - Diagnosed and resolved the root causes of lyrics unsynchronization:
+    1. **Iframe Coordinate Throttling:** Moved `#sonora-yt-player-container` from offscreen coordinates (`top: -9999, left: -9999, opacity: 0`) into an in-viewport compositor-active anchor (`bottom: 0, left: 0, width: 4px, height: 4px, opacity: 0.005, overflow: hidden, pointer-events: none`). This prevents Chromium from suspending audio execution, postMessage events, and timer callbacks.
+    2. **Dual-Clock Master Playback Engine:** Added an autonomous, high-precision delta-time interval ticker inside [`usePlayerStore.ts`](file:///Users/kaushik/Desktop/sonora/src/stores/usePlayerStore.ts). When `isPlaying: true`, playback position continuously advances without freezing if YouTube IFrame API updates lag or buffer. Reconciles seamlessly with authoritative audio time whenever YouTube reports position updates (`>0.35s` differential).
+    3. **Uncapped Fluid Clock Extrapolation:** Removed the 95ms extrapolation ceiling in [`LyricsStudio.tsx`](file:///Users/kaushik/Desktop/sonora/src/features/lyrics-studio/LyricsStudio.tsx), allowing smooth 60fps time progression across high-framerate animation frames.
+    4. **Manual Sync Offset Adjuster Toolbar:** Added fine-tuning timing offset controls (`-0.5s`, `-0.1s`, `[Sync ±0.0s]`, `+0.1s`, `+0.5s`) directly inside the Lyrics Studio toolbar, with keyboard shortcuts (`[` for -0.25s, `]` for +0.25s, click badge to reset to 0s). Accommodates music videos with cinematic intro dialogue or tracks with LRCLIB timestamp discrepancies.
+  - Added new unit test suite [`tests/unit/playerSync.test.ts`](file:///Users/kaushik/Desktop/sonora/tests/unit/playerSync.test.ts) verifying dual-clock progression, clamp limits, and lyrics synchronization (16/16 tests passing).
+  - Validated live continuous playback progression and sync adjustment via Playwright script [`scripts/test_live_sync_progression.js`](file:///Users/kaushik/Desktop/sonora/scripts/test_live_sync_progression.js).
+- **Files Modified:**
+  - `src/app/App.tsx`
+  - `src/stores/usePlayerStore.ts`
+  - `src/providers/youtube-embed/YouTubeEmbedPlayer.ts`
+  - `src/features/lyrics-studio/LyricsStudio.tsx`
+  - `src/styles/lyrics.css`
+- **Files Created:**
+  - `tests/unit/playerSync.test.ts`
+  - `scripts/test_live_sync_progression.js`
+  - `research/screenshots/live-lyrics-sync-verified.png`
+
+---
+
 ## Automated Verification Ledger (V3.0 Master & Golden Lyrics)
 
 | Test Suite / Inspection | Command | Target | Result | Evidence |
 |---|---|---|---|---|
 | **TypeScript Type Check** | `npx tsc --noEmit` | `src/`, `tests/` | **PASS (0 errors)** | Exit code 0 |
-| **Vite Production Build** | `npm run build` | Full bundle | **PASS (1.02s)** | `dist/` |
-| **Vitest Unit Suite** | `npm test` | `tests/unit/*.test.ts` | **PASS (12/12 passed)** | 4 test suites, 210ms |
+| **Vite Production Build** | `npm run build` | Full bundle | **PASS (1.69s)** | `dist/` |
+| **Vitest Unit Suite** | `npm test` | `tests/unit/*.test.ts` | **PASS (16/16 passed)** | 5 test suites, 423ms |
+| **Dual-Clock & Sync Offset** | `npm test tests/unit/playerSync.test.ts` | Continuous Playback & Offsets | **PASS (4/4 passed)** | `tests/unit/playerSync.test.ts` |
 | **Golden Lyrics: Active Word** | `node scripts/test_golden_lyrics.js` | Illumination & Burst | **PASS** | `research/screenshots/golden-lyrics-active-word.png` |
 | **Golden Lyrics: Seek & Morph** | `node scripts/test_golden_lyrics.js` | Seeking & Line Morph | **PASS** | `research/screenshots/golden-lyrics-morphing.png` |
 | **Golden Lyrics: Mobile Viewport** | `node scripts/test_golden_lyrics.js` | 390x844 Viewport | **PASS (0 overflow)** | `research/screenshots/golden-lyrics-mobile.png` |
+| **Live Playback & Sync Progress** | `node scripts/test_live_sync_progression.js` | 60fps sync, offsets, hotkeys | **PASS** | `research/screenshots/live-lyrics-sync-verified.png` |
 | **Browser: Desktop Discover** | `node scripts/validate_browser.js` | 1440x900 Viewport | **PASS** | `research/screenshots/desktop-discover.png` |
 | **Browser: Immersive Player (Mode B)** | `node scripts/validate_browser.js` | Full-viewport vinyl & art | **PASS** | `research/screenshots/desktop-immersive-player.png` |
 | **Browser: Lyrics Focus (Mode C)** | `node scripts/validate_browser.js` | Word-by-word reveal & particles | **PASS** | `research/screenshots/desktop-lyrics-focus.png` |
@@ -226,4 +251,4 @@
 
 ## Blockers & Outstanding Technical Debt
 - **Outstanding Blockers:** None.
-- **Production Readiness:** Application V3.0 with Golden Lyrics Animation Enhancement is completely implemented, verified, and locked in Git. All 8 requirements are proven through Playwright browser automation and high-resolution screenshot evidence.
+- **Production Readiness:** Application V3.0 with Dual-Clock Real-Time Playback Synchronization and Golden Lyrics Animation Enhancement is completely implemented, verified, and locked in Git. All automated checks and Playwright tests pass with 100% success.

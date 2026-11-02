@@ -21,6 +21,7 @@ interface PlayerStoreState {
   isQueueDrawerOpen: boolean;
   lyrics: Lyric[];
   isLyricsLoading: boolean;
+  syncOffsetMs: number;
 
   // Internal Embed Player Reference
   embedPlayer: YouTubeEmbedPlayer | null;
@@ -39,6 +40,58 @@ interface PlayerStoreState {
   previousTrack: () => void;
   setLyricsStudioOpen: (open: boolean) => void;
   setQueueDrawerOpen: (open: boolean) => void;
+  setSyncOffsetMs: (offset: number) => void;
+  adjustSyncOffsetMs: (delta: number) => void;
+}
+
+let masterClockTicker: ReturnType<typeof setInterval> | null = null;
+let lastTickPerf = typeof performance !== 'undefined' ? performance.now() : Date.now();
+
+function startMasterClock(set: any, get: any) {
+  if (masterClockTicker) return;
+  lastTickPerf = typeof performance !== 'undefined' ? performance.now() : Date.now();
+
+  masterClockTicker = setInterval(() => {
+    const { isPlaying, positionSeconds, durationSeconds, embedPlayer } = get();
+    if (!isPlaying) {
+      stopMasterClock();
+      return;
+    }
+
+    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const dtSeconds = Math.min(0.2, Math.max(0.001, (now - lastTickPerf) / 1000));
+    lastTickPerf = now;
+
+    // Check YouTube authoritative player time
+    let ytTime = 0;
+    if (embedPlayer) {
+      try {
+        ytTime = embedPlayer.getCurrentTime();
+      } catch {}
+    }
+
+    let nextPos: number;
+    // If YouTube reported a positive time and it differs significantly (>350ms), gently reconcile
+    if (ytTime > 0 && Math.abs(ytTime - positionSeconds) > 0.35) {
+      nextPos = ytTime;
+    } else {
+      nextPos = positionSeconds + dtSeconds;
+    }
+
+    if (durationSeconds > 0 && nextPos >= durationSeconds) {
+      set({ positionSeconds: durationSeconds });
+      get().nextTrack();
+    } else {
+      set({ positionSeconds: nextPos });
+    }
+  }, 50);
+}
+
+function stopMasterClock() {
+  if (masterClockTicker) {
+    clearInterval(masterClockTicker);
+    masterClockTicker = null;
+  }
 }
 
 export const usePlayerStore = create<PlayerStoreState>((set, get) => ({
@@ -55,6 +108,7 @@ export const usePlayerStore = create<PlayerStoreState>((set, get) => ({
   isQueueDrawerOpen: false,
   lyrics: [],
   isLyricsLoading: false,
+  syncOffsetMs: 0,
   embedPlayer: null,
 
   initEmbedPlayer: (containerId: string) => {
@@ -68,19 +122,28 @@ export const usePlayerStore = create<PlayerStoreState>((set, get) => ({
         // YT.PlayerState: 1 = PLAYING, 2 = PAUSED, 0 = ENDED
         if (state === 1) {
           set({ isPlaying: true });
+          startMasterClock(set, get);
         } else if (state === 2) {
           set({ isPlaying: false });
+          stopMasterClock();
         } else if (state === 0) {
-          // Track ended -> advance queue
+          stopMasterClock();
           get().nextTrack();
         }
       },
       onTimeUpdate: (currentTime, duration, buffered) => {
-        set({
-          positionSeconds: currentTime,
-          durationSeconds: duration > 0 ? duration : get().durationSeconds,
+        const currentPos = get().positionSeconds;
+        const updateObj: Partial<PlayerStoreState> = {
           bufferedSeconds: buffered,
-        });
+        };
+        if (duration > 0) {
+          updateObj.durationSeconds = duration;
+        }
+        if (currentTime > 0 && Math.abs(currentTime - currentPos) > 0.35) {
+          updateObj.positionSeconds = currentTime;
+          lastTickPerf = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        }
+        set(updateObj);
       },
       onError: (errorCode) => {
         console.warn('Playback error code:', errorCode);
@@ -98,6 +161,9 @@ export const usePlayerStore = create<PlayerStoreState>((set, get) => ({
   playTrack: async (track: Track) => {
     const { embedPlayer } = get();
 
+    stopMasterClock();
+    lastTickPerf = typeof performance !== 'undefined' ? performance.now() : Date.now();
+
     set({
       currentTrack: track,
       positionSeconds: 0,
@@ -105,7 +171,10 @@ export const usePlayerStore = create<PlayerStoreState>((set, get) => ({
       bufferedSeconds: 0,
       isPlaying: true,
       isLyricsLoading: true,
+      syncOffsetMs: 0,
     });
+
+    startMasterClock(set, get);
 
     // Extract dynamic ambient artwork colors
     extractArtworkColors(track.artworkUrl).then(applyArtworkColorsToRoot);
@@ -133,6 +202,7 @@ export const usePlayerStore = create<PlayerStoreState>((set, get) => ({
     if (embedPlayer) {
       embedPlayer.loadPlaylist(playlistId);
       set({ isPlaying: true });
+      startMasterClock(set, get);
     }
   },
 
@@ -141,15 +211,18 @@ export const usePlayerStore = create<PlayerStoreState>((set, get) => ({
     if (isPlaying) {
       if (embedPlayer) embedPlayer.pause();
       set({ isPlaying: false });
+      stopMasterClock();
     } else {
       if (embedPlayer) embedPlayer.play();
       set({ isPlaying: true });
+      startMasterClock(set, get);
     }
   },
 
   seek: (seconds: number) => {
     const { embedPlayer, durationSeconds } = get();
     const clamped = Math.max(0, Math.min(seconds, durationSeconds));
+    lastTickPerf = typeof performance !== 'undefined' ? performance.now() : Date.now();
     set({ positionSeconds: clamped });
     if (embedPlayer) {
       embedPlayer.seekTo(clamped);
@@ -195,6 +268,7 @@ export const usePlayerStore = create<PlayerStoreState>((set, get) => ({
       get().playTrack(next);
     } else {
       set({ isPlaying: false });
+      stopMasterClock();
     }
   },
 
@@ -211,5 +285,15 @@ export const usePlayerStore = create<PlayerStoreState>((set, get) => ({
 
   setQueueDrawerOpen: (open: boolean) => {
     set({ isQueueDrawerOpen: open });
+  },
+
+  setSyncOffsetMs: (offset: number) => {
+    set({ syncOffsetMs: offset });
+  },
+
+  adjustSyncOffsetMs: (delta: number) => {
+    set((state) => ({
+      syncOffsetMs: Math.max(-15000, Math.min(15000, state.syncOffsetMs + delta)),
+    }));
   },
 }));

@@ -106,6 +106,60 @@
   gap: 10px;
 }
 
+/* Lyrics Synchronization Adjuster Controls */
+.sync-offset-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(22, 11, 13, 0.9);
+  padding: 3px 6px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border);
+}
+
+.sync-step-btn {
+  padding: 4px 7px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  border: none;
+  color: var(--muted-cream);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.sync-step-btn:hover {
+  background: rgba(84, 20, 33, 0.65);
+  color: var(--champagne);
+}
+
+.sync-badge-btn {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(33, 16, 20, 0.9);
+  border: 1px solid rgba(217, 188, 145, 0.18);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.sync-badge-btn.offset-active {
+  background: rgba(84, 20, 33, 0.9);
+  border-color: var(--champagne);
+  color: var(--champagne);
+  box-shadow: 0 0 10px rgba(217, 188, 145, 0.25);
+}
+
+.sync-badge-btn:hover {
+  border-color: var(--champagne);
+  color: var(--cream-bright);
+}
+
 .studio-toggle-btn {
   padding: 6px 12px;
   border-radius: var(--radius-pill);

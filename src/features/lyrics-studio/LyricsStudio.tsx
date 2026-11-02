@@ -54,6 +54,9 @@ export const LyricsStudio: React.FC<LyricsStudioProps> = ({ onNavigateMode }) =>
     isLyricsStudioOpen,
     setLyricsStudioOpen,
     seek,
+    syncOffsetMs,
+    adjustSyncOffsetMs,
+    setSyncOffsetMs,
   } = usePlayerStore();
 
   const [fontSize, setFontSize] = useState<number>(36);
@@ -78,6 +81,26 @@ export const LyricsStudio: React.FC<LyricsStudioProps> = ({ onNavigateMode }) =>
   const isReducedMotion = typeof window !== 'undefined'
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
     : false;
+
+  // Global hotkeys for sync offset when lyrics studio is open ([ and ])
+  useEffect(() => {
+    if (!isLyricsStudioOpen) return;
+    const handleSyncKeys = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (e.key === '[') {
+        e.preventDefault();
+        adjustSyncOffsetMs(-250);
+      } else if (e.key === ']') {
+        e.preventDefault();
+        adjustSyncOffsetMs(250);
+      } else if (e.key === '0' && (e.metaKey || e.ctrlKey || e.altKey)) {
+        e.preventDefault();
+        setSyncOffsetMs(0);
+      }
+    };
+    window.addEventListener('keydown', handleSyncKeys);
+    return () => window.removeEventListener('keydown', handleSyncKeys);
+  }, [isLyricsStudioOpen, adjustSyncOffsetMs, setSyncOffsetMs]);
 
   // Sync anchor clock when positionSeconds updates from YouTube Embed player
   useEffect(() => {
@@ -105,8 +128,8 @@ export const LyricsStudio: React.FC<LyricsStudioProps> = ({ onNavigateMode }) =>
     const tickClock = (now: number) => {
       if (isPlaying) {
         const elapsed = now - lastAnchorPerfRef.current;
-        // Limit extrapolation to avoid drifting before next engine tick
-        const interpolated = Math.round(lastKnownPosRef.current + Math.min(elapsed, 95));
+        // Uncapped fluid progression driven by high-resolution animation frame
+        const interpolated = Math.round(lastKnownPosRef.current + elapsed);
         const maxMs = durationSeconds > 0 ? durationSeconds * 1000 : Infinity;
         const clamped = Math.min(maxMs, interpolated);
 
@@ -126,7 +149,9 @@ export const LyricsStudio: React.FC<LyricsStudioProps> = ({ onNavigateMode }) =>
     return () => cancelAnimationFrame(rafId);
   }, [isPlaying, isLyricsStudioOpen, durationSeconds]);
 
-  const activeLineIndex = getActiveLineIndex(lyrics, smoothTimeMs);
+  // Calculate effective time including user-adjusted sync offset
+  const effectiveTimeMs = Math.max(0, smoothTimeMs + syncOffsetMs);
+  const activeLineIndex = getActiveLineIndex(lyrics, effectiveTimeMs);
 
   // Auto-scroll effect: smoothly track active line to 38% focus zone
   useEffect(() => {
@@ -337,6 +362,45 @@ export const LyricsStudio: React.FC<LyricsStudioProps> = ({ onNavigateMode }) =>
 
         {/* Toolbar Controls */}
         <div className="lyrics-controls-toolbar">
+          {/* Sync Offset Controls */}
+          <div className="sync-offset-group" title="Adjust lyrics timing offset ([ and ] keys)">
+            <button
+              className="sync-step-btn"
+              onClick={() => adjustSyncOffsetMs(-500)}
+              title="Shift lyrics earlier (-0.5s)"
+            >
+              -0.5s
+            </button>
+            <button
+              className="sync-step-btn"
+              onClick={() => adjustSyncOffsetMs(-100)}
+              title="Shift lyrics earlier (-0.1s)"
+            >
+              -0.1s
+            </button>
+            <button
+              className={`sync-badge-btn ${syncOffsetMs !== 0 ? 'offset-active' : ''}`}
+              onClick={() => setSyncOffsetMs(0)}
+              title="Click to reset timing offset to 0s"
+            >
+              Sync {syncOffsetMs > 0 ? `+${(syncOffsetMs / 1000).toFixed(1)}s` : syncOffsetMs < 0 ? `${(syncOffsetMs / 1000).toFixed(1)}s` : '±0.0s'}
+            </button>
+            <button
+              className="sync-step-btn"
+              onClick={() => adjustSyncOffsetMs(100)}
+              title="Shift lyrics later (+0.1s)"
+            >
+              +0.1s
+            </button>
+            <button
+              className="sync-step-btn"
+              onClick={() => adjustSyncOffsetMs(500)}
+              title="Shift lyrics later (+0.5s)"
+            >
+              +0.5s
+            </button>
+          </div>
+
           {/* External YouTube Music Link */}
           <a
             href={getYTHandoffUrl(currentTrack.videoId)}
@@ -452,15 +516,15 @@ export const LyricsStudio: React.FC<LyricsStudioProps> = ({ onNavigateMode }) =>
                       {/* Word-by-Word Golden Shimmer & Letter Morphing */}
                       {line.parts && line.parts.length > 0 ? (
                         line.parts.map((part, pIdx) => {
-                          const progress = computeWordProgress(part, smoothTimeMs);
+                          const progress = computeWordProgress(part, effectiveTimeMs);
                           const isWordActive = progress.state === 'active';
                           const isWordPast = progress.state === 'past';
                           const words = part.words;
 
                           // Check if word is about to be sung within 280ms
                           const isMorphingIn = !isWordActive && !isWordPast &&
-                            smoothTimeMs >= part.startTimeMs - 280 &&
-                            smoothTimeMs < part.startTimeMs;
+                            effectiveTimeMs >= part.startTimeMs - 280 &&
+                            effectiveTimeMs < part.startTimeMs;
 
                           const wordClass = isWordActive
                             ? 'word-active'

@@ -194,6 +194,28 @@ export class YouTubeEmbedPlayer {
     }
   }
 
+  public getCurrentTime(): number {
+    if (this.player && this.isPlayerReady && !this.isSeeking && this.player.getCurrentTime) {
+      try {
+        return this.player.getCurrentTime() || 0;
+      } catch {
+        return 0;
+      }
+    }
+    return 0;
+  }
+
+  public getDuration(): number {
+    if (this.player && this.isPlayerReady && this.player.getDuration) {
+      try {
+        return this.player.getDuration() || 0;
+      } catch {
+        return 0;
+      }
+    }
+    return 0;
+  }
+
   public destroy() {
     if (this.timeUpdateInterval) {
       clearInterval(this.timeUpdateInterval);
