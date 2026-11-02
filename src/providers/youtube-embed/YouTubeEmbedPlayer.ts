@@ -21,6 +21,8 @@ export class YouTubeEmbedPlayer {
   private events: PlayerEvents;
   private timeUpdateInterval: number | null = null;
   private pendingVideoId: string | null = null;
+  private isSeeking: boolean = false;
+  private seekTimeout: number | null = null;
 
   constructor(containerId: string, events: PlayerEvents = {}) {
     this.containerId = containerId;
@@ -101,7 +103,7 @@ export class YouTubeEmbedPlayer {
   private startTimeTicker() {
     if (this.timeUpdateInterval) clearInterval(this.timeUpdateInterval);
     this.timeUpdateInterval = window.setInterval(() => {
-      if (!this.player || !this.isPlayerReady) return;
+      if (!this.player || !this.isPlayerReady || this.isSeeking) return;
       try {
         const currentTime = this.player.getCurrentTime?.() || 0;
         const duration = this.player.getDuration?.() || 0;
@@ -112,7 +114,7 @@ export class YouTubeEmbedPlayer {
       } catch {
         // Ignored
       }
-    }, 150);
+    }, 50);
   }
 
   public loadVideo(videoId: string) {
@@ -167,6 +169,12 @@ export class YouTubeEmbedPlayer {
   }
 
   public seekTo(seconds: number) {
+    this.isSeeking = true;
+    if (this.seekTimeout) clearTimeout(this.seekTimeout);
+    this.seekTimeout = window.setTimeout(() => {
+      this.isSeeking = false;
+    }, 500);
+
     if (this.player && this.isPlayerReady && this.player.seekTo) {
       try {
         this.player.seekTo(seconds, true);
@@ -190,6 +198,10 @@ export class YouTubeEmbedPlayer {
     if (this.timeUpdateInterval) {
       clearInterval(this.timeUpdateInterval);
       this.timeUpdateInterval = null;
+    }
+    if (this.seekTimeout) {
+      clearTimeout(this.seekTimeout);
+      this.seekTimeout = null;
     }
     if (this.player && this.player.destroy) {
       try {

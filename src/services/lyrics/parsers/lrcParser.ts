@@ -107,6 +107,36 @@ export function parseLRC(lrcText: string, songDurationSeconds: number = 0): Lyri
     // Detect instrumental lines (e.g. music notes or empty)
     const isInstrumental = !cleanWords || /^[\s♪♫♬♩🎵🎶]+$/u.test(cleanWords);
 
+    if (!parts && cleanWords && !isInstrumental) {
+      // Proportional synthetic word timings for line-level synced lyrics
+      const rawWords = cleanWords.split(/(\s+)/);
+      const meaningfulWords = rawWords.filter((w) => w.trim().length > 0);
+      if (meaningfulWords.length > 0) {
+        const totalChars = meaningfulWords.reduce((sum, w) => sum + w.length, 0);
+        let currentWordStart = item.startTimeMs;
+        const lineActiveDuration = durationMs * 0.92;
+        parts = [];
+
+        for (let w = 0; w < rawWords.length; w++) {
+          const token = rawWords[w];
+          if (!token.trim()) {
+            // Append trailing whitespace to previous part if exists
+            if (parts.length > 0) {
+              parts[parts.length - 1].words += token;
+            }
+            continue;
+          }
+          const wDuration = Math.max(160, Math.round((token.length / totalChars) * lineActiveDuration));
+          parts.push({
+            startTimeMs: currentWordStart,
+            durationMs: wDuration,
+            words: token,
+          });
+          currentWordStart += wDuration;
+        }
+      }
+    }
+
     lyrics.push({
       startTimeMs: item.startTimeMs,
       durationMs,

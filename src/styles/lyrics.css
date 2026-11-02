@@ -1,4 +1,8 @@
-/* Lyrics Studio Fullscreen & Container (Mode C - Signature Experience) */
+/* ========================================================= */
+/* SONORA V3.0 GOLDEN LYRICS STUDIO (MODE C - SIGNATURE)     */
+/* Champagne-Gold Shimmer, Morphing Typography & Scattering  */
+/* ========================================================= */
+
 .lyrics-studio-overlay {
   position: fixed;
   inset: 0;
@@ -21,12 +25,12 @@
   transition: all 1.2s var(--ease-smooth);
 }
 
-/* Restrained Champagne Glitter Particle Layer Canvas */
+/* High-Performance Canvas for Golden Glitter Scattering */
 .lyrics-particle-canvas {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 }
 
 /* Studio Header */
@@ -153,11 +157,11 @@
   overflow-y: auto;
   position: relative;
   z-index: 5;
-  padding: 30vh 12vw 45vh 12vw;
+  padding: 32vh 12vw 45vh 12vw;
   scroll-behavior: smooth;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 34px;
   align-items: flex-start;
 }
 
@@ -165,9 +169,11 @@
 .lyric-line-box {
   width: 100%;
   cursor: pointer;
-  transition: all 400ms var(--ease-cinematic);
+  transition: transform 420ms var(--ease-cinematic), opacity 380ms ease, filter 380ms ease;
   transform-origin: left center;
   position: relative;
+  border-radius: var(--radius-medium);
+  padding: 4px 8px;
 }
 
 .lyric-line-text {
@@ -177,10 +183,10 @@
   letter-spacing: var(--tracking-tight);
   color: var(--muted-cream);
   opacity: 0.28;
-  filter: blur(0.5px);
+  filter: blur(0.4px);
   transition: color 280ms var(--ease-smooth),
               opacity 320ms var(--ease-cinematic),
-              transform 350ms var(--ease-cinematic),
+              transform 360ms var(--ease-cinematic),
               filter 320ms var(--ease-smooth);
   display: flex;
   flex-wrap: wrap;
@@ -188,15 +194,36 @@
   align-items: center;
 }
 
-/* Active Line (Oversized, Bright Cream, Champagne Halo) */
+/* Active Line: Oversized, Luminous Champagne Aura */
+.lyric-line-box.active-line {
+  z-index: 6;
+}
+
 .lyric-line-box.active-line .lyric-line-text {
   color: var(--cream-bright);
   opacity: 1;
   filter: blur(0px);
-  transform: scale(1.04);
+  transform: scale(1.045) translateY(-1px);
 }
 
-/* Past Line (Soft warm cream, subdued emphasis) */
+/* Subtle ambient backdrop illumination behind active line */
+.lyric-line-box.active-line::before {
+  content: '';
+  position: absolute;
+  inset: -12px -24px;
+  background: radial-gradient(ellipse at 35% 50%, rgba(217, 188, 145, 0.08) 0%, rgba(84, 20, 33, 0.06) 55%, transparent 80%);
+  border-radius: var(--radius-large);
+  pointer-events: none;
+  z-index: -1;
+  animation: activeLineAura 4s ease-in-out infinite alternate;
+}
+
+@keyframes activeLineAura {
+  0% { opacity: 0.65; transform: scale(0.99); }
+  100% { opacity: 1; transform: scale(1.02); }
+}
+
+/* Past Line: Soft warm cream, settled typography */
 .lyric-line-box.past-line .lyric-line-text {
   color: var(--cream);
   opacity: 0.52;
@@ -204,7 +231,7 @@
   transform: scale(0.98);
 }
 
-/* Upcoming Line (Muted cream, reduced opacity) */
+/* Upcoming Line: Muted cream, reduced opacity */
 .lyric-line-box.upcoming-line .lyric-line-text {
   color: var(--muted-cream);
   opacity: 0.28;
@@ -216,44 +243,117 @@
   filter: blur(0px);
 }
 
-/* Word-by-Word Animation & Letter-by-Letter Reveal */
+/* ========================================================= */
+/* WORD-LEVEL MORPHING & GOLDEN SHIMMER                      */
+/* ========================================================= */
+
 .lyric-word-span {
   position: relative;
   display: inline-flex;
   align-items: center;
-  transition: color 180ms ease-out, transform 180ms ease-out;
-}
-
-.lyric-word-span.word-past {
-  color: var(--cream);
-  opacity: 0.75;
-}
-
-.lyric-word-span.word-active {
-  color: var(--cream-bright);
-  text-shadow: 0 0 28px var(--champagne-glow);
+  transition: transform 260ms var(--ease-cinematic),
+              opacity 240ms ease,
+              color 200ms ease,
+              filter 240ms ease;
+  will-change: transform, opacity;
 }
 
 .lyric-word-span.word-upcoming {
   color: var(--muted-cream);
-  opacity: 0.4;
+  opacity: 0.36;
+  filter: blur(0.35px);
+  transform: scale(0.985);
 }
 
-/* Progressive Character Reveal */
+.lyric-word-span.word-morphing {
+  color: #E2D3BE;
+  opacity: 0.82;
+  filter: blur(0px);
+  transform: scale(1.015);
+}
+
+.lyric-word-span.word-active {
+  color: var(--cream-bright);
+  opacity: 1;
+  filter: blur(0px);
+  transform: translateY(-1.5px) scale(1.035);
+}
+
+/* Delicate golden radiance underline on active word */
+.lyric-word-span.word-active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(217, 188, 145, 0.65) 50%, transparent 100%);
+  border-radius: var(--radius-pill);
+  animation: goldenUnderlinePulse 2.4s ease-in-out infinite;
+}
+
+@keyframes goldenUnderlinePulse {
+  0%, 100% { opacity: 0.45; transform: scaleX(0.85); }
+  50% { opacity: 0.95; transform: scaleX(1.05); }
+}
+
+.lyric-word-span.word-past {
+  color: var(--cream);
+  opacity: 0.68;
+  filter: blur(0px);
+  transform: scale(1.0);
+}
+
+/* ========================================================= */
+/* PROGRESSIVE CHARACTER REVEAL & GOLDEN GLOW                */
+/* ========================================================= */
+
 .char-reveal {
   display: inline-block;
-  transition: opacity 120ms ease-out, color 120ms ease-out, text-shadow 120ms ease-out;
+  will-change: transform, opacity, color;
+  transition: transform 180ms var(--ease-cinematic),
+              opacity 160ms ease-out,
+              color 160ms ease-out,
+              text-shadow 200ms ease-out,
+              filter 160ms ease-out;
 }
 
-.char-lit {
-  opacity: 1;
-  color: var(--cream-bright);
-  text-shadow: 0 0 22px rgba(217, 188, 145, 0.55);
-}
-
+/* Upcoming character within word */
 .char-dim {
   opacity: 0.35;
   color: var(--muted-cream);
+  transform: scale(0.98);
+  filter: blur(0.3px);
+}
+
+/* The exact character currently being sung */
+.char-singing {
+  opacity: 1;
+  transform: translateY(-2px) scale(1.07);
+  color: #FFF6E5;
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFE6A3 45%, #D9BC91 80%, #F6EBDD 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 14px rgba(217, 188, 145, 0.8),
+               0 0 26px rgba(217, 188, 145, 0.45),
+               0 0 42px rgba(168, 50, 69, 0.22);
+  filter: blur(0px);
+  animation: goldenCharTwinkle 300ms ease-out forwards;
+}
+
+@keyframes goldenCharTwinkle {
+  0% { transform: translateY(0px) scale(1.0); }
+  50% { transform: translateY(-2.5px) scale(1.1); }
+  100% { transform: translateY(-2px) scale(1.07); }
+}
+
+/* Completed character within active word */
+.char-lit {
+  opacity: 1;
+  color: var(--cream-bright);
+  transform: translateY(0) scale(1);
+  filter: blur(0px);
+  text-shadow: 0 0 14px rgba(217, 188, 145, 0.32);
 }
 
 /* Romanization & Translation Subtext */
@@ -386,5 +486,22 @@
   }
   .lyric-line-box.active-line .lyric-line-text {
     transform: none;
+  }
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  .lyric-line-box,
+  .lyric-line-text,
+  .lyric-word-span,
+  .char-reveal,
+  .lyric-line-box.active-line::before,
+  .lyric-word-span.word-active::after {
+    transition-duration: 0.01ms !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  .lyrics-particle-canvas {
+    display: none !important;
   }
 }
