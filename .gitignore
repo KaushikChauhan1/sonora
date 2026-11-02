@@ -22,6 +22,8 @@ research/repositories/*
 .env
 .env.*
 !.env.example
+.ytm_session.json
+*.log
 
 # OS metadata
 .DS_Store

@@ -101,10 +101,25 @@ npm run build
 npm test
 ```
 
-### 5. Run Automated Browser Validation & Screenshots (Playwright)
+### 5. Start Full-Stack Backend & Frontend Server
 ```bash
-node scripts/validate_browser.js
+npm start
 ```
+Runs the production HTTP server on port 3001 serving both the InnerTube API bridge and the compiled frontend single-page application.
+
+### 6. Cloud & Container Deployment
+- **Docker:** `docker build -t sonora . && docker run -p 3001:3001 sonora`
+- **GitHub Pages:** Automatically deployed via `.github/workflows/deploy.yml` on push to `main`.
+- **Vercel / Netlify:** Pre-configured with `vercel.json` and `netlify.toml` for 1-click Git import.
+
+---
+
+## Antigravity AI Agent Integration
+
+This repository is configured for autonomous pair programming with **Google Antigravity**:
+- Project governance manifest: [`.antigravity/project-manifest.json`](.antigravity/project-manifest.json)
+- Engineering standards & invariant rules: [`AGENTS.md`](AGENTS.md)
+- Complete execution history & verification ledger: [`docs/EXECUTION_LOG.md`](docs/EXECUTION_LOG.md)
 
 ---
 

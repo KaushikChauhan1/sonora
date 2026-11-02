@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "start": "node server/index.js",
+    "server": "node server/index.js",
     "preview": "vite preview",
-    "bridge": "node scripts/ytm_account_bridge.js",
+    "bridge": "node server/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"

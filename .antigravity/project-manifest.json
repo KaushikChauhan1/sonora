@@ -1,0 +1,28 @@
+{
+  "name": "SONORA",
+  "tagline": "Music deserves a better interface.",
+  "version": "3.0.0",
+  "repository": "https://github.com/KaushikChauhan1/sonora",
+  "architecture": {
+    "frontend": "React 18 + TypeScript + Vite + Zustand + Framer Motion",
+    "backend": "Node.js Pure HTTP Server (InnerTube & Account Session Bridge)",
+    "playbackEngine": "Headless YouTube IFrame API + Dual-Clock Continuous Master Engine",
+    "lyricsEngine": "LRCLIB Sync + Golden Shimmer + Character Morphing + Starlet Particle Scattering"
+  },
+  "antigravity": {
+    "enabled": true,
+    "syncBranch": "main",
+    "scripts": {
+      "dev": "npm run dev",
+      "build": "npm run build",
+      "test": "npm test",
+      "server": "npm run server"
+    },
+    "guidelines": [
+      "Preserve V3.0 Obsidian, Burgundy, Warm Cream, Champagne Gold aesthetic.",
+      "Dual-clock continuous playback engine must remain resilient against YouTube throttles.",
+      "Never store credentials or raw session cookies in git; use local .ytm_session.json (gitignored).",
+      "Maintain 100% Vitest and Playwright test coverage on any updates."
+    ]
+  }
+}
